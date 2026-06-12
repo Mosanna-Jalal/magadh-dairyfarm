@@ -1,0 +1,53 @@
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Customer from "@/models/Customer";
+import Purchase from "@/models/Purchase";
+import Payment from "@/models/Payment";
+import Product from "@/models/Product";
+
+export const dynamic = "force-dynamic";
+
+// Public, read-only: customers look up their own account by phone number.
+export async function GET(request) {
+  await dbConnect();
+  const { searchParams } = new URL(request.url);
+  const phone = (searchParams.get("phone") || "").replace(/\D/g, "");
+  if (phone.length < 10) {
+    return NextResponse.json({ error: "Please enter your 10-digit mobile number." }, { status: 400 });
+  }
+  const customer = await Customer.findOne({ phone: new RegExp(phone + "$") }).lean();
+  if (!customer) {
+    return NextResponse.json(
+      { error: "No account found for this number. Please contact the farm to get registered." },
+      { status: 404 }
+    );
+  }
+  const [purchases, payments, products] = await Promise.all([
+    Purchase.find({ customerId: customer._id }).sort({ date: -1, createdAt: -1 }).limit(60).lean(),
+    Payment.find({ customerId: customer._id }).sort({ date: -1, createdAt: -1 }).limit(30).lean(),
+    Product.find().sort({ sortOrder: 1 }).lean(),
+  ]);
+  const [purAgg, payAgg] = await Promise.all([
+    Purchase.aggregate([
+      { $match: { customerId: customer._id } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
+    ]),
+    Payment.aggregate([
+      { $match: { customerId: customer._id } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]),
+  ]);
+  const purchased = purAgg[0]?.total || 0;
+  const paid = payAgg[0]?.total || 0;
+  const due = (customer.openingBalance || 0) + purchased - paid;
+
+  return NextResponse.json({
+    customer: { name: customer.name, phone: customer.phone, address: customer.address, openingBalance: customer.openingBalance },
+    purchases,
+    payments,
+    purchased,
+    paid,
+    due,
+    products,
+  });
+}

@@ -1,0 +1,32 @@
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import Customer from "@/models/Customer";
+import { totalsByCustomer, dueOf } from "@/lib/ledger";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  await dbConnect();
+  const [customers, totals] = await Promise.all([
+    Customer.find().sort({ name: 1 }).lean(),
+    totalsByCustomer(),
+  ]);
+  const withDues = customers.map((c) => ({ ...c, ...dueOf(c, totals) }));
+  return NextResponse.json({ customers: withDues });
+}
+
+export async function POST(request) {
+  await dbConnect();
+  const body = await request.json();
+  if (!body.name?.trim()) {
+    return NextResponse.json({ error: "Customer name is required" }, { status: 400 });
+  }
+  const customer = await Customer.create({
+    name: body.name.trim(),
+    phone: (body.phone || "").trim(),
+    address: (body.address || "").trim(),
+    openingBalance: Number(body.openingBalance || 0),
+    note: body.note || "",
+  });
+  return NextResponse.json({ customer }, { status: 201 });
+}
