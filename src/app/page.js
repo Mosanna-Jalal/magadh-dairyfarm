@@ -41,7 +41,7 @@ export default async function Home() {
         <Hero3D />
 
         {/* soft vignette on the left for text legibility — scene stays visible */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-[42%] bg-gradient-to-r from-black/30 via-black/10 to-transparent sm:block" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-[42%] bg-gradient-to-r from-black/15 via-black/5 to-transparent sm:block" />
 
         {/* top nav */}
         <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-10">
@@ -68,19 +68,19 @@ export default async function Home() {
         </header>
 
         {/* hero copy — narrow column on the left so the farm stays in view */}
-        <div className="pointer-events-none absolute inset-x-4 bottom-6 z-10 sm:inset-x-auto sm:bottom-auto sm:left-10 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-y-1/2">
-          <div className="animate-fade-up rounded-2xl bg-white/70 p-5 shadow-xl backdrop-blur-md sm:p-7">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-leaf">
+        <div className="pointer-events-none absolute inset-x-4 bottom-5 z-10 sm:inset-x-auto sm:bottom-auto sm:left-10 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-y-1/2">
+          <div className="animate-fade-up rounded-2xl bg-white/25 p-4 shadow-md backdrop-blur-[3px] sm:bg-white/30 sm:p-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-leafdark drop-shadow-sm">
               Pure &amp; fresh — straight from the village
             </p>
-            <h1 className="mt-2 font-display text-2xl font-bold leading-tight text-stone-900 sm:text-4xl">
+            <h1 className="mt-1.5 font-display text-2xl font-bold leading-tight text-stone-900 drop-shadow-sm sm:text-4xl">
               Farm-fresh dairy, every single day
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            <p className="mt-2 hidden text-sm leading-relaxed text-stone-700 sm:block">
               Our own cows and buffaloes are milked morning and evening. The same pure milk,
               paneer, ghee, khowa and dahi reaches your home — unadulterated, always fresh.
             </p>
-            <div className="pointer-events-auto mt-4 flex flex-wrap items-center gap-2.5">
+            <div className="pointer-events-auto mt-3 flex flex-wrap items-center gap-2.5 sm:mt-4">
               <a href="#products" className="btn-primary">
                 🥛 Today&apos;s availability
               </a>
