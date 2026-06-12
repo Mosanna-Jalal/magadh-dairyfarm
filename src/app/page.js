@@ -200,6 +200,31 @@ export default async function Home() {
             </Link>
           </div>
         </div>
+        <div className="border-t border-white/10">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-4 text-xs text-green-200/80 sm:px-8">
+            <p>© {new Date().getFullYear()} Magadh Dairy Farm. All rights reserved.</p>
+            <p className="flex flex-wrap items-center gap-1.5">
+              Developed by{" "}
+              <a
+                href="https://me-mj.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-white hover:underline"
+              >
+                Mosanna Jalal
+              </a>
+              <span className="opacity-40">·</span>
+              <a
+                href="https://me-mj.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-white hover:underline"
+              >
+                MJX Web Studio
+              </a>
+            </p>
+          </div>
+        </div>
       </footer>
     </main>
   );
