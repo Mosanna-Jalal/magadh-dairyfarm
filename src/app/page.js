@@ -2,6 +2,8 @@ import Link from "next/link";
 import HeroSection from "@/components/HeroSection";
 import ProductIcon from "@/components/ProductIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import Reveal from "@/components/Reveal";
+import MilkPour3D from "@/components/MilkPour3D";
 import dbConnect from "@/lib/db";
 import Product from "@/models/Product";
 import { inr } from "@/lib/format";
@@ -43,17 +45,19 @@ export default async function Home() {
 
       {/* ── Live availability ───────────────────────────── */}
       <section id="products" className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-3xl font-bold text-stone-900">Today&apos;s Stock</h2>
-            <p className="mt-1 text-sm text-stone-500">
-              Live availability — the moment something sells out at the farm, it shows here.
-            </p>
+        <Reveal from="up">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-3xl font-bold text-stone-900">Today&apos;s Stock</h2>
+              <p className="mt-1 text-sm text-stone-500">
+                Live availability — the moment something sells out at the farm, it shows here.
+              </p>
+            </div>
+            <Link href="/portal" className="btn-ghost">
+              📒 View your purchase history
+            </Link>
           </div>
-          <Link href="/portal" className="btn-ghost">
-            📒 View your purchase history
-          </Link>
-        </div>
+        </Reveal>
 
         {!products ? (
           <div className="card mt-8 p-8 text-center text-sm text-stone-500">
@@ -62,30 +66,37 @@ export default async function Home() {
         ) : (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((p, i) => (
-              <div
+              <Reveal
                 key={p.slug}
-                className={`card group relative overflow-hidden p-6 transition hover:-translate-y-1 hover:shadow-lg ${
-                  i === 0 ? "ring-2 ring-leaf/50 sm:col-span-2 lg:col-span-1" : ""
-                }`}
+                from={i % 2 ? "right" : "left"}
+                delay={(i % 3) * 90}
+                className={i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}
               >
-                {i === 0 && (
-                  <span className="absolute right-4 top-4 chip bg-leaf text-white">
-                    ⭐ Best seller
-                  </span>
-                )}
-                <ProductIcon slug={p.slug} className="h-14 w-14" />
-                <h3 className="mt-3 font-display text-xl font-bold text-stone-900">
-                  {p.name} <span className="text-sm font-normal text-stone-400">{p.nameHindi}</span>
-                </h3>
-                <p className="mt-1 text-sm text-stone-500">{p.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-lg font-bold text-leafdark">
-                    {inr(p.price)}
-                    <span className="text-xs font-medium text-stone-400"> / {p.unit}</span>
-                  </p>
-                  <StockBadge p={p} />
+                <div
+                  className={`card group relative h-full overflow-hidden p-6 transition hover:-translate-y-1 hover:shadow-lg ${
+                    i === 0 ? "ring-2 ring-leaf/50" : ""
+                  }`}
+                >
+                  {i === 0 && (
+                    <span className="absolute right-4 top-4 chip bg-leaf text-white">
+                      ⭐ Best seller
+                    </span>
+                  )}
+                  <ProductIcon slug={p.slug} className="h-14 w-14" />
+                  <h3 className="mt-3 font-display text-xl font-bold text-stone-900">
+                    {p.name}{" "}
+                    <span className="text-sm font-normal text-stone-400">{p.nameHindi}</span>
+                  </h3>
+                  <p className="mt-1 text-sm text-stone-500">{p.description}</p>
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-lg font-bold text-leafdark">
+                      {inr(p.price)}
+                      <span className="text-xs font-medium text-stone-400"> / {p.unit}</span>
+                    </p>
+                    <StockBadge p={p} />
+                  </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         )}
@@ -94,9 +105,11 @@ export default async function Home() {
       {/* ── Why us ───────────────────────────── */}
       <section className="bg-butter/50">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-          <h2 className="text-center font-display text-3xl font-bold text-stone-900">
-            Why Magadh Dairy?
-          </h2>
+          <Reveal from="up">
+            <h2 className="text-center font-display text-3xl font-bold text-stone-900">
+              Why Magadh Dairy?
+            </h2>
+          </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {[
               {
@@ -114,27 +127,32 @@ export default async function Home() {
                 title: "Zero adulteration",
                 text: "No water, no powder. If something runs out, the website says so — we never stretch the supply.",
               },
-            ].map((f) => (
-              <div key={f.title} className="card p-6 text-center">
-                <div className="text-4xl">{f.icon}</div>
-                <h3 className="mt-3 font-display text-lg font-bold">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">{f.text}</p>
-              </div>
+            ].map((f, i) => (
+              <Reveal key={f.title} from={i === 0 ? "left" : i === 2 ? "right" : "up"} delay={i * 90}>
+                <div className="card h-full p-6 text-center">
+                  <div className="text-4xl">{f.icon}</div>
+                  <h3 className="mt-3 font-display text-lg font-bold">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">{f.text}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Footer ───────────────────────────── */}
-      <footer className="bg-leafdark text-green-100">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 sm:px-8">
+      <footer className="relative overflow-hidden bg-leafdark text-green-100">
+        {/* flowing milk 3D accent */}
+        <MilkPour3D />
+
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 py-8 text-center sm:flex-row sm:justify-between sm:px-8 sm:text-left">
           <div>
             <p className="font-display text-lg font-bold text-white">🐄 Magadh Dairy Farm</p>
             <p className="text-xs text-green-200/80">
               Farm-fresh milk &amp; dairy from the Magadh region, Bihar.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-sm sm:justify-end">
             <a
               href="https://wa.me/919973807755"
               target="_blank"
@@ -154,9 +172,9 @@ export default async function Home() {
           </div>
         </div>
         <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-4 text-xs text-green-200/80 sm:px-8">
+          <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-4 text-center text-xs text-green-200/80 sm:flex-row sm:justify-between sm:px-8 sm:text-left">
             <p>© {new Date().getFullYear()} Magadh Dairy Farm. All rights reserved.</p>
-            <p className="flex flex-wrap items-center gap-1.5">
+            <p className="flex flex-wrap items-center justify-center gap-1.5">
               Developed by{" "}
               <a
                 href="https://me-mj.vercel.app"
