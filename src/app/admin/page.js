@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { inr, prettyDate } from "@/lib/format";
+import ProductIcon from "@/components/ProductIcon";
 
 export default function AdminDashboard() {
   const [s, setS] = useState(null);
@@ -62,12 +63,12 @@ export default function AdminDashboard() {
           <div className="mt-2 flex flex-wrap gap-2">
             {s.outOfStock.map((p) => (
               <span key={p.slug} className="chip bg-red-600 text-white">
-                {p.emoji} {p.name} OUT OF STOCK
+                <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name} OUT OF STOCK
               </span>
             ))}
             {s.lowStock.map((p) => (
               <span key={p.slug} className="chip bg-amber-200 text-amber-900">
-                {p.emoji} {p.name}: only {p.stock} {p.unit} left
+                <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}: only {p.stock} {p.unit} left
               </span>
             ))}
           </div>
@@ -119,8 +120,8 @@ export default function AdminDashboard() {
               return (
                 <div key={p.slug}>
                   <div className="flex items-center justify-between text-sm">
-                    <p className="font-medium text-stone-700">
-                      {p.emoji} {p.name}
+                    <p className="flex items-center gap-1.5 font-medium text-stone-700">
+                      <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}
                     </p>
                     <p className={`font-bold ${p.stock <= 0 ? "text-red-600" : p.stock <= p.lowStockAt ? "text-amber-600" : "text-stone-700"}`}>
                       {p.stock <= 0 ? "Out" : `${p.stock} ${p.unit}`}

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { inr, dayStr } from "@/lib/format";
+import ProductIcon from "@/components/ProductIcon";
+import CustomerSelect from "@/components/admin/CustomerSelect";
 
 function ModalShell({ title, subtitle, onClose, children }) {
   return (
@@ -85,17 +87,7 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div>
           <label className="label">Customer</label>
-          <select
-            className="input"
-            value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
-          >
-            {customers.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <CustomerSelect customers={customers} value={customerId} onChange={setCustomerId} />
         </div>
         <div>
           <label className="label">Date</label>
@@ -103,7 +95,16 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
+      {/* column headers */}
+      <div className="mt-4 flex items-center gap-3 px-3 text-[10px] font-semibold uppercase tracking-wide text-stone-400">
+        <span className="w-7 shrink-0" />
+        <span className="grow">Item</span>
+        <span className="w-20 text-center">Qty</span>
+        <span className="w-20 text-center">Rate (₹)</span>
+        <span className="w-16 text-right">Amount</span>
+      </div>
+
+      <div className="mt-1 space-y-2">
         {products.map((p, i) => {
           const line = lines[i];
           const qty = Number(line.qty) || 0;
@@ -117,7 +118,7 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
               } ${p.stock <= 0 ? "opacity-60" : ""}`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{p.emoji}</span>
+                <ProductIcon slug={p.slug} className="h-7 w-7 shrink-0" />
                 <div className="min-w-0 grow">
                   <p className="text-sm font-bold text-stone-800">
                     {p.name}{" "}

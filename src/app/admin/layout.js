@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/ledger", label: "Daily Ledger", icon: "📒" },
   { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/stock", label: "Stock", icon: "📦" },
+  { href: "/admin/reports", label: "Sales Report", icon: "📈" },
 ];
 
 export default function AdminLayout({ children }) {

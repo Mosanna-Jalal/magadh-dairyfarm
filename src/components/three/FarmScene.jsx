@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, RoundedBox, Sky } from "@react-three/drei";
 
 // Deterministic pseudo-random so positions are stable across renders
@@ -337,7 +337,27 @@ function GrassTufts({ count = 50 }) {
   ));
 }
 
-function FarmWorld() {
+// Drives the intro zoom: while `active`, dollies the camera from a close-up
+// (progress 0) out to the full farm (progress 1), with a gentle auto-rotate.
+function CameraRig({ progressRef, active }) {
+  const { camera } = useThree();
+  useFrame((state) => {
+    if (!active) return; // handed off to OrbitControls
+    const raw = progressRef && progressRef.current ? progressRef.current.value : 0;
+    const p = Math.min(1, Math.max(0, raw));
+    const e = p * p * (3 - 2 * p); // smoothstep
+    const radius = 6.6 + (14 - 6.6) * e;
+    const polar = 0.95; // fixed viewing tilt
+    const t = state.clock.getElapsedTime();
+    const az = 0.6 + t * 0.08; // slow drift while zooming
+    const horiz = Math.sin(polar) * radius;
+    camera.position.set(Math.cos(az) * horiz, 1.2 + Math.cos(polar) * radius, Math.sin(az) * horiz);
+    camera.lookAt(0, 1.2, 0);
+  });
+  return null;
+}
+
+function FarmWorld({ progressRef, locked }) {
   return (
     <>
       <Sky sunPosition={[60, 28, 40]} turbidity={5} rayleigh={1.2} />
@@ -392,29 +412,33 @@ function FarmWorld() {
       <Cloud position={[4, 10.5, -10]} scale={2.1} speed={0.12} />
       <Cloud position={[12, 8.5, -2]} scale={1.2} speed={0.22} />
 
-      <OrbitControls
-        makeDefault
-        target={[0, 1.2, 0]}
-        autoRotate
-        autoRotateSpeed={0.6}
-        enablePan={false}
-        minDistance={7}
-        maxDistance={20}
-        maxPolarAngle={Math.PI / 2.08}
-      />
+      <CameraRig progressRef={progressRef} active={locked} />
+      {!locked && (
+        <OrbitControls
+          makeDefault
+          target={[0, 1.2, 0]}
+          autoRotate
+          autoRotateSpeed={0.6}
+          enablePan={false}
+          enableZoom={false}
+          minDistance={7}
+          maxDistance={20}
+          maxPolarAngle={Math.PI / 2.08}
+        />
+      )}
     </>
   );
 }
 
-export default function FarmScene() {
+export default function FarmScene({ progressRef, locked = false }) {
   return (
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: [11.5, 5.5, 13.5], fov: 42 }}
+      camera={{ position: [5.2, 3.2, 3.6], fov: 42 }}
       className="!absolute inset-0"
     >
-      <FarmWorld />
+      <FarmWorld progressRef={progressRef} locked={locked} />
     </Canvas>
   );
 }

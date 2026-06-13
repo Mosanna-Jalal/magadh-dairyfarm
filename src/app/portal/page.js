@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { inr, prettyDate } from "@/lib/format";
+import ProductIcon from "@/components/ProductIcon";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 export default function PortalPage() {
   const [phone, setPhone] = useState("");
@@ -123,7 +125,7 @@ export default function PortalPage() {
                         : "bg-green-100 text-green-700"
                     }`}
                   >
-                    {p.emoji} {p.name}:{" "}
+                    <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}:{" "}
                     {p.stock <= 0
                       ? "sold out"
                       : `${p.stock} ${p.unit} • ${inr(p.price)}/${p.unit}`}
@@ -177,6 +179,7 @@ export default function PortalPage() {
           </div>
         )}
       </div>
+      <WhatsAppButton label="Contact the farm" />
     </main>
   );
 }

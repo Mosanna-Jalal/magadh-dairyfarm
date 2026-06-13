@@ -1,5 +1,7 @@
 import Link from "next/link";
-import Hero3D from "@/components/Hero3D";
+import HeroSection from "@/components/HeroSection";
+import ProductIcon from "@/components/ProductIcon";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import dbConnect from "@/lib/db";
 import Product from "@/models/Product";
 import { inr } from "@/lib/format";
@@ -36,66 +38,8 @@ export default async function Home() {
 
   return (
     <main>
-      {/* ── Hero with 3D farm ───────────────────────────── */}
-      <section className="relative h-[92vh] min-h-[560px] overflow-hidden">
-        <Hero3D />
-
-        {/* soft vignette on the left for text legibility — scene stays visible */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-[42%] bg-gradient-to-r from-black/15 via-black/5 to-transparent sm:block" />
-
-        {/* top nav */}
-        <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-10">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 shadow backdrop-blur">
-            <span className="text-2xl">🐄</span>
-            <div className="leading-tight">
-              <p className="font-display text-base font-bold text-leafdark">Magadh Dairy Farm</p>
-              <p className="text-[10px] uppercase tracking-widest text-stone-500">
-                Pure • Fresh • Village Made
-              </p>
-            </div>
-          </div>
-          <nav className="pointer-events-auto flex items-center gap-2">
-            <a href="#products" className="btn-light hidden sm:inline-flex">
-              Products
-            </a>
-            <Link href="/portal" className="btn-light">
-              📒 My Account
-            </Link>
-            <Link href="/admin" className="btn-primary">
-              Admin
-            </Link>
-          </nav>
-        </header>
-
-        {/* hero copy — narrow column on the left so the farm stays in view */}
-        <div className="pointer-events-none absolute inset-x-4 bottom-5 z-10 sm:inset-x-auto sm:bottom-auto sm:left-10 sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-y-1/2">
-          <div className="animate-fade-up rounded-2xl bg-white/25 p-4 shadow-md backdrop-blur-[3px] sm:bg-white/30 sm:p-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-leafdark drop-shadow-sm">
-              Pure &amp; fresh — straight from the village
-            </p>
-            <h1 className="mt-1.5 font-display text-2xl font-bold leading-tight text-stone-900 drop-shadow-sm sm:text-4xl">
-              Farm-fresh dairy, every single day
-            </h1>
-            <p className="mt-2 hidden text-sm leading-relaxed text-stone-700 sm:block">
-              Our own cows and buffaloes are milked morning and evening. The same pure milk,
-              paneer, ghee, khowa and dahi reaches your home — unadulterated, always fresh.
-            </p>
-            <div className="pointer-events-auto mt-3 flex flex-wrap items-center gap-2.5 sm:mt-4">
-              <a href="#products" className="btn-primary">
-                🥛 Today&apos;s availability
-              </a>
-              <Link href="/portal" className="btn-ghost">
-                Check your account →
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* interaction hint */}
-        <div className="pointer-events-none absolute bottom-4 right-4 z-10 hidden rounded-full bg-black/35 px-3.5 py-1.5 text-[11px] font-medium text-white backdrop-blur sm:block">
-          🖱️ Drag to explore the farm
-        </div>
-      </section>
+      {/* ── Hero with 3D farm (scroll-driven zoom) ──────────── */}
+      <HeroSection />
 
       {/* ── Live availability ───────────────────────────── */}
       <section id="products" className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
@@ -129,7 +73,7 @@ export default async function Home() {
                     ⭐ Best seller
                   </span>
                 )}
-                <div className="text-5xl">{p.emoji}</div>
+                <ProductIcon slug={p.slug} className="h-14 w-14" />
                 <h3 className="mt-3 font-display text-xl font-bold text-stone-900">
                   {p.name} <span className="text-sm font-normal text-stone-400">{p.nameHindi}</span>
                 </h3>
@@ -190,7 +134,16 @@ export default async function Home() {
               Farm-fresh milk &amp; dairy from the Magadh region, Bihar.
             </p>
           </div>
-          <div className="flex gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <a
+              href="https://wa.me/919973807755"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white"
+            >
+              📱 WhatsApp: 99738 07755
+            </a>
+            <span className="opacity-40">•</span>
             <Link href="/portal" className="hover:text-white">
               My Account
             </Link>
@@ -226,6 +179,8 @@ export default async function Home() {
           </div>
         </div>
       </footer>
+
+      <WhatsAppButton />
     </main>
   );
 }

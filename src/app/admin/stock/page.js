@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { inr } from "@/lib/format";
+import ProductIcon from "@/components/ProductIcon";
 
 function ProductRow({ p, onSaved }) {
   const [stock, setStock] = useState(p.stock);
@@ -28,8 +29,9 @@ function ProductRow({ p, onSaved }) {
   return (
     <tr className="hover:bg-green-50/40">
       <td className="px-4 py-3">
-        <p className="font-semibold text-stone-800">
-          {p.emoji} {p.name} <span className="text-xs font-normal text-stone-400">{p.nameHindi}</span>
+        <p className="flex items-center gap-2 font-semibold text-stone-800">
+          <ProductIcon slug={p.slug} className="h-6 w-6 shrink-0" />
+          {p.name} <span className="text-xs font-normal text-stone-400">{p.nameHindi}</span>
         </p>
         <p className="text-[11px] text-stone-400">per {p.unit}</p>
       </td>
