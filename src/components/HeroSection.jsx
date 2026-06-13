@@ -70,24 +70,30 @@ export default function HeroSection() {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-[42%] bg-gradient-to-r from-black/15 via-black/5 to-transparent sm:block" />
 
         {/* top nav */}
-        <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-10">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 shadow backdrop-blur">
-            <span className="text-2xl">🐄</span>
-            <div className="leading-tight">
-              <p className="font-display text-base font-bold text-leafdark">Magadh Dairy Farm</p>
-              <p className="text-[10px] uppercase tracking-widest text-stone-500">
+        <header className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-2 px-3 py-3 sm:px-10 sm:py-4">
+          <Link
+            href="/"
+            className="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 shadow backdrop-blur sm:px-4 sm:py-2"
+          >
+            <span className="text-xl sm:text-2xl">🐄</span>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate font-display text-sm font-bold text-leafdark sm:text-base">
+                Magadh Dairy Farm
+              </p>
+              <p className="hidden text-[10px] uppercase tracking-widest text-stone-500 sm:block">
                 Pure • Fresh • Village Made
               </p>
             </div>
-          </div>
-          <nav className="pointer-events-auto flex items-center gap-2">
+          </Link>
+          <nav className="pointer-events-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
             <a href="#products" className="btn-light hidden sm:inline-flex">
               Products
             </a>
-            <Link href="/portal" className="btn-light">
-              📒 My Account
+            <Link href="/portal" aria-label="My Account" className="btn-light !px-3 sm:!px-5">
+              <span aria-hidden>📒</span>
+              <span className="hidden sm:inline">My Account</span>
             </Link>
-            <Link href="/admin" className="btn-primary">
+            <Link href="/admin" className="btn-primary !px-4 sm:!px-5">
               Admin
             </Link>
           </nav>
