@@ -77,8 +77,8 @@ export default function HeroSection() {
           >
             <span className="text-xl sm:text-2xl">🐄</span>
             <div className="min-w-0 leading-tight">
-              <p className="truncate font-display text-sm font-bold text-leafdark sm:text-base">
-                Magadh Dairy Farm
+              <p className="max-w-[10rem] font-display text-[13px] font-bold leading-tight text-leafdark sm:max-w-none sm:text-base">
+                Magadh Farm &amp; Dairy Products
               </p>
               <p className="hidden text-[10px] uppercase tracking-widest text-stone-500 sm:block">
                 Pure • Fresh • Village Made

@@ -34,7 +34,7 @@ export default function PortalPage() {
       <header className="border-b border-stone-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-5 py-3">
           <Link href="/" className="flex items-center gap-2 font-display font-bold text-leafdark">
-            🐄 Magadh Dairy Farm
+            🐄 Magadh Farm & Dairy Products
           </Link>
           <Link href="/" className="text-sm text-stone-500 hover:text-leaf">
             ← Home

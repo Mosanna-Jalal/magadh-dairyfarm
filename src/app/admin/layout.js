@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/stock", label: "Stock", icon: "📦" },
   { href: "/admin/reports", label: "Sales Report", icon: "📈" },
+  { href: "/admin/backup", label: "Backup & Export", icon: "💾" },
 ];
 
 export default function AdminLayout({ children }) {
@@ -29,7 +30,7 @@ export default function AdminLayout({ children }) {
         <Link href="/" className="flex items-center gap-2 px-5 py-4">
           <span className="text-2xl">🐄</span>
           <div className="leading-tight">
-            <p className="font-display font-bold">Magadh Dairy</p>
+            <p className="font-display font-bold">Magadh Farm &amp; Dairy</p>
             <p className="text-[10px] uppercase tracking-widest text-green-300">Admin Panel</p>
           </div>
         </Link>

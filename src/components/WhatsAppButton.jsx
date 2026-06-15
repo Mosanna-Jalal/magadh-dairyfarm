@@ -3,7 +3,7 @@ const OWNER_WHATSAPP = "919973807755";
 
 export default function WhatsAppButton({
   label = "Order on WhatsApp",
-  message = "Hello! I would like to enquire about Magadh Dairy Farm products.",
+  message = "Hello! I would like to enquire about Magadh Farm & Dairy Products.",
 }) {
   const href = `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(message)}`;
   return (

@@ -1,30 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function submit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    if (res.ok) {
-      router.push("/admin");
-      router.refresh();
-    } else {
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        // Full-page navigation so the freshly-set auth cookie is sent with the
+        // request to /admin (a soft router.push can race the cookie/redirect cache).
+        window.location.assign("/admin");
+        return; // keep the button in its loading state while the page navigates
+      }
       const json = await res.json().catch(() => ({}));
       setError(json.error || "Login failed");
+      setLoading(false);
+    } catch {
+      setError("Network error — please try again.");
       setLoading(false);
     }
   }
@@ -35,7 +39,7 @@ export default function AdminLogin() {
         <div className="text-center">
           <span className="text-4xl">🐄</span>
           <h1 className="mt-2 font-display text-2xl font-bold text-stone-900">Admin Login</h1>
-          <p className="text-xs text-stone-500">Magadh Dairy Farm — authorized access only</p>
+          <p className="text-xs text-stone-500">Magadh Farm &amp; Dairy Products — authorized access only</p>
         </div>
         <div className="mt-6">
           <label className="label">Password</label>

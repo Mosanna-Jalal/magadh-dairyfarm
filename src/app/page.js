@@ -107,7 +107,7 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
           <Reveal from="up">
             <h2 className="text-center font-display text-3xl font-bold text-stone-900">
-              Why Magadh Dairy?
+              Why Magadh Farm & Dairy?
             </h2>
           </Reveal>
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
@@ -147,7 +147,7 @@ export default async function Home() {
 
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-5 py-8 text-center sm:flex-row sm:justify-between sm:px-8 sm:text-left">
           <div>
-            <p className="font-display text-lg font-bold text-white">🐄 Magadh Dairy Farm</p>
+            <p className="font-display text-lg font-bold text-white">🐄 Magadh Farm & Dairy Products</p>
             <p className="text-xs text-green-200/80">
               Farm-fresh milk &amp; dairy from the Magadh region, Bihar.
             </p>
@@ -173,7 +173,7 @@ export default async function Home() {
         </div>
         <div className="border-t border-white/10">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 py-4 text-center text-xs text-green-200/80 sm:flex-row sm:justify-between sm:px-8 sm:text-left">
-            <p>© {new Date().getFullYear()} Magadh Dairy Farm. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Magadh Farm & Dairy Products. All rights reserved.</p>
             <p className="flex flex-wrap items-center justify-center gap-1.5">
               Developed by{" "}
               <a

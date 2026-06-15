@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { inr, dayStr, addDays, monthLabel, prettyDay } from "@/lib/format";
 import SalesChart from "@/components/admin/SalesChart";
+import TopProductsChart from "@/components/admin/TopProductsChart";
+import ProductTrendChart from "@/components/admin/ProductTrendChart";
 
 function Stat({ label, value, color }) {
   return (
@@ -11,6 +13,18 @@ function Stat({ label, value, color }) {
       <p className={`mt-1 text-2xl font-extrabold ${color}`}>{value}</p>
     </div>
   );
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function ReportsPage() {
@@ -50,12 +64,36 @@ export default function ReportsPage() {
 
   const labelFn = (k) => (groupBy === "month" ? monthLabel(k) : prettyDay(k));
 
+  function downloadCSV() {
+    if (!data) return;
+    const lines = [];
+    lines.push(`Sales report,${from} to ${to}`);
+    lines.push("");
+    lines.push(groupBy === "month" ? "Month,Sales (INR),Collection (INR)" : "Date,Sales (INR),Collection (INR)");
+    for (const p of data.points || []) lines.push(`${labelFn(p.key)},${p.sales},${p.collection}`);
+    lines.push("");
+    lines.push("Product demand (selected range)");
+    lines.push("Product,Quantity,Unit,Sales (INR)");
+    for (const p of data.products || []) lines.push(`${p.name},${p.qty},${p.unit || ""},${p.sales}`);
+    lines.push("");
+    lines.push(`Total sales,${data.totalSales || 0}`);
+    lines.push(`Total collected,${data.totalCollection || 0}`);
+    downloadText(`magadh_sales_${from}_to_${to}.csv`, lines.join("\n"));
+  }
+
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-stone-900">📈 Sales Report</h1>
-      <p className="text-sm text-stone-500">
-        Track sales and collections day-wise, month-wise or for any custom date range.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-stone-900">📈 Sales Report</h1>
+          <p className="text-sm text-stone-500">
+            Sales, collections and product demand — day-wise, month-wise or any custom range.
+          </p>
+        </div>
+        <button className="btn-ghost" onClick={downloadCSV} disabled={!data}>
+          ⬇ Download report (CSV)
+        </button>
+      </div>
 
       {/* controls */}
       <div className="card mt-5 flex flex-wrap items-end gap-3 p-4">
@@ -101,9 +139,10 @@ export default function ReportsPage() {
         />
       </div>
 
-      {/* chart */}
+      {/* sales-over-time chart */}
       <div className="card mt-5 p-5">
-        <div className="mb-3 flex items-center gap-4 text-xs text-stone-600">
+        <h2 className="font-display text-lg font-bold text-stone-900">Sales &amp; collections over time</h2>
+        <div className="mb-3 mt-2 flex items-center gap-4 text-xs text-stone-600">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-3 w-3 rounded-sm bg-leaf" /> Sales
           </span>
@@ -118,6 +157,20 @@ export default function ReportsPage() {
         ) : (
           <SalesChart points={data?.points || []} labelFn={labelFn} />
         )}
+      </div>
+
+      {/* product demand + monthly trend */}
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div className="card p-5">
+          <h2 className="font-display text-lg font-bold text-stone-900">🏆 Product demand</h2>
+          <p className="mb-3 text-xs text-stone-500">Which products sold the most in the selected range.</p>
+          <TopProductsChart products={data?.products || []} />
+        </div>
+        <div className="card p-5">
+          <h2 className="font-display text-lg font-bold text-stone-900">Product-wise monthly trend</h2>
+          <p className="mb-3 text-xs text-stone-500">How each product&apos;s monthly sales move over time.</p>
+          <ProductTrendChart data={data?.productMonths} />
+        </div>
       </div>
     </div>
   );

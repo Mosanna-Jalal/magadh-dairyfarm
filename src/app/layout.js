@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Magadh Dairy Farm — Pure & Fresh, Straight from the Village",
+  title: "Magadh Farm & Dairy Products — Pure & Fresh, Straight from the Village",
   description:
     "Family-run dairy farm in the Magadh region. Fresh cow & buffalo milk, paneer, ghee, khowa and dahi delivered daily. Check live availability and your account online.",
 };
