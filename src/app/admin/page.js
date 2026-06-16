@@ -26,7 +26,13 @@ export default function AdminDashboard() {
 
   const cards = [
     { label: "Total Outstanding (all customers)", value: inr(s.totalDue), color: "text-red-600", icon: "🧾" },
-    { label: `Today's Sales (${s.todayEntries} entries)`, value: inr(s.todaySales), color: "text-leafdark", icon: "🥛" },
+    {
+      label: `Today's Sales (${s.todayEntries} entries)`,
+      value: inr(s.todaySales),
+      color: "text-leafdark",
+      icon: "🥛",
+      sub: `☀️ ${inr(s.todayMorningSales || 0)}  ·  🌙 ${inr(s.todayNightSales || 0)}`,
+    },
     { label: "Today's Collection", value: inr(s.todayCollection), color: "text-green-700", icon: "💵" },
     { label: "Active Customers", value: s.customerCount, color: "text-stone-800", icon: "👥" },
   ];
@@ -52,6 +58,7 @@ export default function AdminDashboard() {
               <span className="text-xl">{c.icon}</span>
             </div>
             <p className={`mt-2 text-2xl font-extrabold ${c.color}`}>{c.value}</p>
+            {c.sub && <p className="mt-1 text-xs font-medium text-stone-500">{c.sub}</p>}
           </div>
         ))}
       </div>

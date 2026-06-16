@@ -28,7 +28,7 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const body = await request.json();
   const allowed = {};
-  for (const k of ["name", "phone", "address", "openingBalance", "active", "note"]) {
+  for (const k of ["name", "phone", "address", "shift", "openingBalance", "active", "note"]) {
     if (body[k] !== undefined) allowed[k] = body[k];
   }
   const customer = await Customer.findByIdAndUpdate(id, allowed, { new: true });

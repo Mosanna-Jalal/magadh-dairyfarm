@@ -25,6 +25,7 @@ export async function POST(request) {
     name: body.name.trim(),
     phone: (body.phone || "").trim(),
     address: (body.address || "").trim(),
+    shift: ["morning", "night", "both"].includes(body.shift) ? body.shift : "both",
     openingBalance: Number(body.openingBalance || 0),
     note: body.note || "",
   });

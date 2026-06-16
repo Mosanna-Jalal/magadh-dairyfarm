@@ -30,6 +30,7 @@ function downloadText(filename, text) {
 export default function ReportsPage() {
   const today = dayStr();
   const [groupBy, setGroupBy] = useState("day");
+  const [shift, setShift] = useState("all"); // all | morning | night
   const [from, setFrom] = useState(addDays(today, -13));
   const [to, setTo] = useState(today);
   const [data, setData] = useState(null);
@@ -37,10 +38,11 @@ export default function ReportsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/sales?from=${from}&to=${to}&groupBy=${groupBy}`);
+    const shiftQ = shift === "all" ? "" : `&shift=${shift}`;
+    const res = await fetch(`/api/sales?from=${from}&to=${to}&groupBy=${groupBy}${shiftQ}`);
     setData(await res.json());
     setLoading(false);
-  }, [from, to, groupBy]);
+  }, [from, to, groupBy, shift]);
 
   useEffect(() => {
     load();
@@ -110,6 +112,14 @@ export default function ReportsPage() {
           <select className="input" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
             <option value="day">Day</option>
             <option value="month">Month</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Session</label>
+          <select className="input" value={shift} onChange={(e) => setShift(e.target.value)}>
+            <option value="all">All</option>
+            <option value="morning">☀️ Morning</option>
+            <option value="night">🌙 Night</option>
           </select>
         </div>
         <div className="flex flex-wrap gap-2">

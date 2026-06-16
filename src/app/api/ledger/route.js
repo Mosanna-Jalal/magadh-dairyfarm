@@ -15,11 +15,19 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
+  const shift = searchParams.get("shift"); // morning | night | (all/none)
   if (!from || !to) return NextResponse.json({ error: "from and to required" }, { status: 400 });
 
+  const custFilter = { active: true };
+  const purFilter = { date: { $gte: from, $lte: to } };
+  if (shift === "morning" || shift === "night") {
+    purFilter.shift = shift;
+    custFilter.shift = { $in: [shift, "both"] };
+  }
+
   const [customers, purchases, payments, totals] = await Promise.all([
-    Customer.find({ active: true }).sort({ name: 1 }).lean(),
-    Purchase.find({ date: { $gte: from, $lte: to } }).lean(),
+    Customer.find(custFilter).sort({ name: 1 }).lean(),
+    Purchase.find(purFilter).lean(),
     Payment.find({ date: { $gte: from, $lte: to } }).lean(),
     totalsByCustomer(),
   ]);

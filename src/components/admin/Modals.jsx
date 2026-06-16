@@ -34,6 +34,7 @@ function ModalShell({ title, subtitle, onClose, children }) {
 export function EntryModal({ customers, products, preset = {}, onClose, onSaved }) {
   const [customerId, setCustomerId] = useState(preset.customerId || customers[0]?._id || "");
   const [date, setDate] = useState(preset.date || dayStr());
+  const [shift, setShift] = useState(preset.shift === "night" ? "night" : "morning");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -64,7 +65,7 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
       const res = await fetch("/api/purchases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId, date, note, items }),
+        body: JSON.stringify({ customerId, date, shift, note, items }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Could not save the entry");
@@ -92,6 +93,30 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
         <div>
           <label className="label">Date</label>
           <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+        </div>
+      </div>
+
+      {/* session (morning / night) */}
+      <div className="mt-3">
+        <label className="label">Session</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            ["morning", "☀️ Morning"],
+            ["night", "🌙 Night"],
+          ].map(([val, lbl]) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setShift(val)}
+              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                shift === val
+                  ? "border-leaf bg-leaf text-white"
+                  : "border-stone-300 bg-white text-stone-600 hover:border-leaf"
+              }`}
+            >
+              {lbl}
+            </button>
+          ))}
         </div>
       </div>
 

@@ -22,6 +22,7 @@ export async function POST(request) {
   await dbConnect();
   const body = await request.json();
   const { customerId, date, note } = body;
+  const shift = body.shift === "night" ? "night" : "morning";
   const rawItems = (body.items || []).filter((i) => Number(i.qty) > 0);
 
   if (!customerId || !date || rawItems.length === 0) {
@@ -65,7 +66,7 @@ export async function POST(request) {
   }
 
   const total = items.reduce((s, i) => s + i.amount, 0);
-  const purchase = await Purchase.create({ customerId, date, items, total, note: note || "" });
+  const purchase = await Purchase.create({ customerId, date, shift, items, total, note: note || "" });
 
   // Deduct sold quantity from available stock
   await Promise.all(

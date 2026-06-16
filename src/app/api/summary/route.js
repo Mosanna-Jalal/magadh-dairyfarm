@@ -26,6 +26,12 @@ export async function GET() {
   const totalDue = dues.reduce((s, c) => s + Math.max(0, c.due), 0);
 
   const todaySales = todayPurchases.reduce((s, p) => s + p.total, 0);
+  const todayMorningSales = todayPurchases
+    .filter((p) => p.shift !== "night")
+    .reduce((s, p) => s + p.total, 0);
+  const todayNightSales = todayPurchases
+    .filter((p) => p.shift === "night")
+    .reduce((s, p) => s + p.total, 0);
   const todayCollection = todayPayments.reduce((s, p) => s + p.amount, 0);
 
   const outOfStock = products.filter((p) => p.stock <= 0);
@@ -35,6 +41,8 @@ export async function GET() {
     today,
     totalDue,
     todaySales,
+    todayMorningSales,
+    todayNightSales,
     todayEntries: todayPurchases.length,
     todayCollection,
     customerCount: customers.length,

@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { inr } from "@/lib/format";
 
-const EMPTY = { name: "", phone: "", address: "", openingBalance: "" };
+const EMPTY = { name: "", phone: "", address: "", shift: "morning", openingBalance: "" };
+
+const SHIFT_LABEL = { morning: "☀️ Morning", night: "🌙 Night", both: "☀️🌙 Both" };
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState(null);
@@ -61,7 +63,7 @@ export default function CustomersPage() {
         <h2 className="font-display font-bold text-stone-800">
           ➕ Add customer (from the manual register)
         </h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <label className="label">Name *</label>
             <input
@@ -88,6 +90,18 @@ export default function CustomersPage() {
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
+          </div>
+          <div>
+            <label className="label">Session</label>
+            <select
+              className="input"
+              value={form.shift}
+              onChange={(e) => setForm({ ...form, shift: e.target.value })}
+            >
+              <option value="morning">☀️ Morning</option>
+              <option value="night">🌙 Night</option>
+              <option value="both">Both</option>
+            </select>
           </div>
           <div>
             <label className="label">Old balance (₹)</label>
@@ -129,6 +143,7 @@ export default function CustomersPage() {
                   <th className="px-4 py-2.5">Name</th>
                   <th className="px-4 py-2.5">Mobile</th>
                   <th className="px-4 py-2.5">Address</th>
+                  <th className="px-4 py-2.5">Session</th>
                   <th className="px-4 py-2.5 text-right">Opening</th>
                   <th className="px-4 py-2.5 text-right">Purchased</th>
                   <th className="px-4 py-2.5 text-right">Paid</th>
@@ -142,6 +157,7 @@ export default function CustomersPage() {
                     <td className="px-4 py-3 font-semibold text-stone-800">{c.name}</td>
                     <td className="px-4 py-3 text-stone-500">{c.phone || "—"}</td>
                     <td className="px-4 py-3 text-stone-500">{c.address || "—"}</td>
+                    <td className="px-4 py-3 text-stone-600">{SHIFT_LABEL[c.shift] || SHIFT_LABEL.both}</td>
                     <td className="px-4 py-3 text-right text-stone-500">{inr(c.openingBalance)}</td>
                     <td className="px-4 py-3 text-right">{inr(c.purchased)}</td>
                     <td className="px-4 py-3 text-right text-green-700">{inr(c.paid)}</td>

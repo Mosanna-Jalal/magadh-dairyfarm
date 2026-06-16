@@ -28,6 +28,7 @@ export default function CustomerDetail() {
       name: d.customer?.name || "",
       phone: d.customer?.phone || "",
       address: d.customer?.address || "",
+      shift: d.customer?.shift || "both",
       openingBalance: d.customer?.openingBalance ?? 0,
     });
   }, [id]);
@@ -118,6 +119,18 @@ export default function CustomerDetail() {
                 />
               </div>
             ))}
+            <div>
+              <label className="label">Session</label>
+              <select
+                className="input"
+                value={editForm.shift}
+                onChange={(e) => setEditForm({ ...editForm, shift: e.target.value })}
+              >
+                <option value="morning">☀️ Morning</option>
+                <option value="night">🌙 Night</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
             <div className="sm:col-span-4">
               <button className="btn-primary">✓ Save</button>
             </div>
@@ -150,7 +163,9 @@ export default function CustomerDetail() {
             {data.purchases.map((p) => (
               <div key={p._id} className="group flex items-start justify-between gap-2 py-2.5">
                 <div>
-                  <p className="text-xs font-semibold text-stone-400">{prettyDate(p.date)}</p>
+                  <p className="text-xs font-semibold text-stone-400">
+                    {prettyDate(p.date)} <span title={p.shift === "night" ? "Night" : "Morning"}>{p.shift === "night" ? "🌙" : "☀️"}</span>
+                  </p>
                   <p className="text-sm text-stone-700">
                     {p.items.map((i) => `${i.name} ${i.qty}${i.unit === "litre" ? "L" : "kg"} (${inr(i.amount)})`).join(" + ")}
                   </p>

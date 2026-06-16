@@ -15,10 +15,14 @@ export async function GET(request) {
   const from = searchParams.get("from");
   const to = searchParams.get("to");
   const groupBy = searchParams.get("groupBy") === "month" ? "month" : "day";
+  const shift = searchParams.get("shift"); // morning | night | (all)
   if (!from || !to) return NextResponse.json({ error: "from and to required" }, { status: 400 });
 
+  const purFilter = { date: { $gte: from, $lte: to } };
+  if (shift === "morning" || shift === "night") purFilter.shift = shift;
+
   const [purchases, payments] = await Promise.all([
-    Purchase.find({ date: { $gte: from, $lte: to } }).select("date total items").lean(),
+    Purchase.find(purFilter).select("date total items shift").lean(),
     Payment.find({ date: { $gte: from, $lte: to } }).select("date amount").lean(),
   ]);
 

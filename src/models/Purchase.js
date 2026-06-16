@@ -16,6 +16,7 @@ const PurchaseSchema = new mongoose.Schema(
   {
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true, index: true },
     date: { type: String, required: true, index: true }, // "YYYY-MM-DD"
+    shift: { type: String, enum: ["morning", "night"], default: "morning", index: true },
     items: [ItemSchema],
     total: { type: Number, required: true },
     note: { type: String, default: "" },

@@ -26,6 +26,9 @@ function CellContent({ cell }) {
       {cell.purchases.map((p) => (
         <div key={p._id} className="rounded-md bg-amber-50 px-1.5 py-1 text-left ring-1 ring-amber-200/60">
           <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] leading-tight text-stone-600">
+            <span title={p.shift === "night" ? "Night" : "Morning"}>
+              {p.shift === "night" ? "🌙" : "☀️"}
+            </span>
             {p.items.map((i, idx) => (
               <span key={idx} className="inline-flex items-center gap-0.5">
                 <ProductIcon slug={i.name.toLowerCase()} className="h-3 w-3" />
@@ -55,7 +58,8 @@ export default function LedgerPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [entry, setEntry] = useState(null); // { customerId?, date? }
+  const [shift, setShift] = useState("morning"); // morning | night | all
+  const [entry, setEntry] = useState(null); // { customerId?, date?, shift? }
   const [pay, setPay] = useState(null); // customer object
 
   // last 12 months for the quick "jump to month" dropdown (recent first)
@@ -67,8 +71,9 @@ export default function LedgerPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    const shiftQ = shift === "all" ? "" : `&shift=${shift}`;
     const [ledRes, custRes, prodRes] = await Promise.all([
-      fetch(`/api/ledger?from=${from}&to=${to}`),
+      fetch(`/api/ledger?from=${from}&to=${to}${shiftQ}`),
       fetch("/api/customers"),
       fetch("/api/products"),
     ]);
@@ -77,13 +82,13 @@ export default function LedgerPage() {
     setCustomers(cust.customers || []);
     setProducts(prod.products || []);
     setLoading(false);
-  }, [from, to]);
+  }, [from, to, shift]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  function shift(dir) {
+  function shiftRange(dir) {
     const len = listDays(from, to).length;
     let nf = addDays(from, dir * len);
     let nt = addDays(to, dir * len);
@@ -131,9 +136,31 @@ export default function LedgerPage() {
             to add an entry.
           </p>
         </div>
-        <button className="btn-primary" onClick={() => setEntry({ date: today })}>
+        <button
+          className="btn-primary"
+          onClick={() => setEntry({ date: today, shift: shift === "all" ? "morning" : shift })}
+        >
           ＋ New Entry
         </button>
+      </div>
+
+      {/* session toggle — morning and night have different customers */}
+      <div className="mt-4 inline-flex rounded-xl border border-stone-200 bg-white p-1 shadow-sm">
+        {[
+          ["morning", "☀️ Morning"],
+          ["night", "🌙 Night"],
+          ["all", "Both / All"],
+        ].map(([val, lbl]) => (
+          <button
+            key={val}
+            onClick={() => setShift(val)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              shift === val ? "bg-leaf text-white shadow" : "text-stone-600 hover:text-leaf"
+            }`}
+          >
+            {lbl}
+          </button>
+        ))}
       </div>
 
       {/* filters */}
@@ -168,10 +195,10 @@ export default function LedgerPage() {
           <button className="btn-ghost" onClick={() => pickMonth(today.slice(0, 7))}>
             This month
           </button>
-          <button className="btn-ghost" onClick={() => shift(-1)} title="Earlier">
+          <button className="btn-ghost" onClick={() => shiftRange(-1)} title="Earlier">
             ←
           </button>
-          <button className="btn-ghost" onClick={() => shift(1)} disabled={to === today} title="Later">
+          <button className="btn-ghost" onClick={() => shiftRange(1)} disabled={to === today} title="Later">
             →
           </button>
         </div>
@@ -248,7 +275,13 @@ export default function LedgerPage() {
                       {data.days.map((d) => (
                         <td
                           key={d}
-                          onClick={() => setEntry({ customerId: row.customer._id, date: d })}
+                          onClick={() =>
+                            setEntry({
+                              customerId: row.customer._id,
+                              date: d,
+                              shift: shift === "all" ? "morning" : shift,
+                            })
+                          }
                           className={`group cursor-pointer border-r border-stone-100 px-1.5 py-1.5 text-center align-top transition hover:bg-leaf/10 ${
                             d === today ? "bg-green-50/70" : ""
                           }`}

@@ -141,6 +141,7 @@ export async function GET(request) {
         for (const it of p.items || [])
           rows.push({
             date: p.date,
+            session: p.shift || "morning",
             customer: c?.name || "",
             phone: c?.phone || "",
             product: it.name,
