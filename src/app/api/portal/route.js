@@ -41,6 +41,29 @@ export async function GET(request) {
   const paid = payAgg[0]?.total || 0;
   const due = (customer.openingBalance || 0) + purchased - paid;
 
+  // Optional date-range bill (customer generates their own invoice)
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+  let bill = null;
+  if (from && to) {
+    const [bp, bpay] = await Promise.all([
+      Purchase.find({ customerId: customer._id, date: { $gte: from, $lte: to } })
+        .sort({ date: 1, createdAt: 1 })
+        .lean(),
+      Payment.find({ customerId: customer._id, date: { $gte: from, $lte: to } })
+        .sort({ date: 1, createdAt: 1 })
+        .lean(),
+    ]);
+    bill = {
+      from,
+      to,
+      purchases: bp,
+      payments: bpay,
+      purchased: bp.reduce((s, p) => s + p.total, 0),
+      paid: bpay.reduce((s, p) => s + p.amount, 0),
+    };
+  }
+
   return NextResponse.json({
     customer: { name: customer.name, phone: customer.phone, address: customer.address, openingBalance: customer.openingBalance },
     purchases,
@@ -49,5 +72,6 @@ export async function GET(request) {
     paid,
     due,
     products,
+    bill,
   });
 }

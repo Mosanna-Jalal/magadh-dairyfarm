@@ -4,6 +4,7 @@ import ProductIcon from "@/components/ProductIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Reveal from "@/components/Reveal";
 import MilkPour3D from "@/components/MilkPour3D";
+import NoticePopup from "@/components/NoticePopup";
 import dbConnect from "@/lib/db";
 import Product from "@/models/Product";
 import { inr } from "@/lib/format";
@@ -199,6 +200,7 @@ export default async function Home() {
       </footer>
 
       <WhatsAppButton />
+      <NoticePopup />
     </main>
   );
 }

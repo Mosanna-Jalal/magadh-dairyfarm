@@ -2,15 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { inr, prettyDate } from "@/lib/format";
+import { inr, prettyDate, dayStr } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import Bill from "@/components/Bill";
+import NoticePopup from "@/components/NoticePopup";
 
 export default function PortalPage() {
   const [phone, setPhone] = useState("");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // self-service bill
+  const today = dayStr();
+  const [billFrom, setBillFrom] = useState(today.slice(0, 7) + "-01");
+  const [billTo, setBillTo] = useState(today);
+  const [bill, setBill] = useState(null);
+  const [genLoading, setGenLoading] = useState(false);
+
+  async function generateBill() {
+    setGenLoading(true);
+    try {
+      const res = await fetch(
+        `/api/portal?phone=${encodeURIComponent(phone)}&from=${billFrom}&to=${billTo}`
+      );
+      const json = await res.json();
+      if (res.ok && json.bill) setBill({ bill: json.bill, currentDue: json.due });
+    } finally {
+      setGenLoading(false);
+    }
+  }
 
   async function lookup(e) {
     e?.preventDefault();
@@ -110,6 +132,40 @@ export default function PortalPage() {
               )}
             </div>
 
+            {/* generate your own bill */}
+            <div className="card p-5">
+              <h2 className="font-display text-lg font-bold">🧾 Generate your bill</h2>
+              <p className="mt-1 text-sm text-stone-500">
+                Choose a date range and download a clean PDF bill of your purchases.
+              </p>
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <div>
+                  <label className="label">From</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={billFrom}
+                    max={billTo}
+                    onChange={(e) => setBillFrom(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label">To</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={billTo}
+                    min={billFrom}
+                    max={today}
+                    onChange={(e) => setBillTo(e.target.value)}
+                  />
+                </div>
+                <button className="btn-primary" onClick={generateBill} disabled={genLoading}>
+                  {genLoading ? "Preparing…" : "📄 Generate bill"}
+                </button>
+              </div>
+            </div>
+
             {/* today's availability */}
             <div className="card p-5">
               <h2 className="font-display text-lg font-bold">Available at the farm today</h2>
@@ -179,7 +235,18 @@ export default function PortalPage() {
           </div>
         )}
       </div>
+
+      {bill && (
+        <Bill
+          customer={data.customer}
+          bill={bill.bill}
+          currentDue={bill.currentDue}
+          onClose={() => setBill(null)}
+        />
+      )}
+
       <WhatsAppButton label="Contact the farm" />
+      <NoticePopup />
     </main>
   );
 }

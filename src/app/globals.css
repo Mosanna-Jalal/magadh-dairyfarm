@@ -52,6 +52,28 @@ body {
   background: #f1ead9;
 }
 
+/* Print only the invoice when saving a bill as PDF */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #printable-bill,
+  #printable-bill * {
+    visibility: visible !important;
+  }
+  #printable-bill {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
 .spinner {
   width: 44px;
   height: 44px;

@@ -68,6 +68,7 @@ export default function ReportsPage() {
 
   function downloadCSV() {
     if (!data) return;
+    if (!confirm("Download this sales report as a CSV file?")) return;
     const lines = [];
     lines.push(`Sales report,${from} to ${to}`);
     lines.push("");

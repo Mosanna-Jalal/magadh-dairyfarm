@@ -33,6 +33,8 @@ export default function BackupPage() {
 
   // browser download via a temporary anchor (cookie is sent with the request)
   function download(params) {
+    const what = params.format === "json" ? "the full backup (JSON)" : `the ${params.table} CSV`;
+    if (!confirm(`Download ${what} for "${rangeText}"?`)) return;
     const a = document.createElement("a");
     a.href = hrefFor(params);
     a.rel = "noopener";

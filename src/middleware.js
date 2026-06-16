@@ -20,6 +20,13 @@ export function middleware(request) {
     if (pathname.startsWith("/api/auth")) return NextResponse.next();
     if (pathname.startsWith("/api/portal")) return NextResponse.next();
     if (pathname.startsWith("/api/products") && request.method === "GET") return NextResponse.next();
+    // active notices are public for the website popup; ?all=1 (admin list) stays protected
+    if (
+      pathname.startsWith("/api/notices") &&
+      request.method === "GET" &&
+      !request.nextUrl.searchParams.get("all")
+    )
+      return NextResponse.next();
     if (!authed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
