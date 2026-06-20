@@ -10,6 +10,8 @@ export async function PATCH(request, { params }) {
   for (const k of ["stock", "price", "lowStockAt", "name", "nameHindi", "description", "unit"]) {
     if (body[k] !== undefined) allowed[k] = body[k];
   }
+  // keep stock to at most 3 decimal places
+  if (allowed.stock !== undefined) allowed.stock = Math.round((Number(allowed.stock) || 0) * 1000) / 1000;
   const product = await Product.findByIdAndUpdate(id, allowed, { new: true });
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
   return NextResponse.json({ product });

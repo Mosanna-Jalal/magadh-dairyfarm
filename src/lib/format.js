@@ -5,6 +5,16 @@ export function inr(n) {
   return "₹" + v.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
+// Round to at most 3 decimals (trims trailing zeros: 62, 62.5, 62.125).
+export function round3(n) {
+  return Math.round((Number(n) || 0) * 1000) / 1000;
+}
+
+// All quantities are in kg now; legacy "litre" data is treated as kg (1L = 1kg).
+export function unitLabel(u) {
+  return u === "litre" ? "kg" : u || "kg";
+}
+
 // Local date as "YYYY-MM-DD"
 export function dayStr(d = new Date()) {
   return new Date(d).toLocaleDateString("en-CA");

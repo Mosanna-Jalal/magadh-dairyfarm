@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Toaster from "@/components/admin/Toaster";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
@@ -70,6 +71,7 @@ export default function AdminLayout({ children }) {
       <main className="min-w-0 flex-1 lg:ml-60">
         <div className="mx-auto max-w-7xl p-4 sm:p-6">{children}</div>
       </main>
+      <Toaster />
     </div>
   );
 }

@@ -28,8 +28,22 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const body = await request.json();
   const allowed = {};
-  for (const k of ["name", "phone", "address", "shift", "openingBalance", "active", "note"]) {
+  for (const k of ["name", "phone", "address", "shift", "house", "openingBalance", "active", "note"]) {
     if (body[k] !== undefined) allowed[k] = body[k];
+  }
+  // keep mobile numbers unique across customers
+  if (allowed.phone) {
+    const phone = String(allowed.phone).trim();
+    allowed.phone = phone;
+    if (phone) {
+      const dup = await Customer.findOne({ phone, _id: { $ne: id } }).lean();
+      if (dup) {
+        return NextResponse.json(
+          { error: `Another customer already uses mobile ${phone} (${dup.name}).` },
+          { status: 409 }
+        );
+      }
+    }
   }
   const customer = await Customer.findByIdAndUpdate(id, allowed, { new: true });
   if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });

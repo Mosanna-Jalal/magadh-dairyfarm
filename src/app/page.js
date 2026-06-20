@@ -7,7 +7,7 @@ import MilkPour3D from "@/components/MilkPour3D";
 import NoticePopup from "@/components/NoticePopup";
 import dbConnect from "@/lib/db";
 import Product from "@/models/Product";
-import { inr } from "@/lib/format";
+import { inr, round3, unitLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -26,12 +26,12 @@ function StockBadge({ p }) {
   if (p.stock <= p.lowStockAt)
     return (
       <span className="chip bg-amber-100 text-amber-700">
-        Only {p.stock} {p.unit} left
+        Only {round3(p.stock)} {unitLabel(p.unit)} left
       </span>
     );
   return (
     <span className="chip bg-green-100 text-green-700">
-      Available: {p.stock} {p.unit}
+      Available: {round3(p.stock)} {unitLabel(p.unit)}
     </span>
   );
 }
@@ -92,7 +92,7 @@ export default async function Home() {
                   <div className="mt-4 flex items-center justify-between">
                     <p className="text-lg font-bold text-leafdark">
                       {inr(p.price)}
-                      <span className="text-xs font-medium text-stone-400"> / {p.unit}</span>
+                      <span className="text-xs font-medium text-stone-400"> / {unitLabel(p.unit)}</span>
                     </p>
                     <StockBadge p={p} />
                   </div>

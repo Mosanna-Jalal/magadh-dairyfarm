@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { inr } from "@/lib/format";
+import { inr, round3, unitLabel } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 
 function ProductRow({ p, onSaved }) {
-  const [stock, setStock] = useState(p.stock);
+  const [stock, setStock] = useState(round3(p.stock));
   const [price, setPrice] = useState(p.price);
   const [lowStockAt, setLowStockAt] = useState(p.lowStockAt);
   const [saving, setSaving] = useState(false);
@@ -17,7 +17,7 @@ function ProductRow({ p, onSaved }) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        stock: Number(stock),
+        stock: round3(stock),
         price: Number(price),
         lowStockAt: Number(lowStockAt),
       }),
@@ -33,7 +33,7 @@ function ProductRow({ p, onSaved }) {
           <ProductIcon slug={p.slug} className="h-6 w-6 shrink-0" />
           {p.name} <span className="text-xs font-normal text-stone-400">{p.nameHindi}</span>
         </p>
-        <p className="text-[11px] text-stone-400">per {p.unit}</p>
+        <p className="text-[11px] text-stone-400">per {unitLabel(p.unit)}</p>
       </td>
       <td className="px-4 py-3">
         {p.stock <= 0 ? (
@@ -54,7 +54,7 @@ function ProductRow({ p, onSaved }) {
             value={stock}
             onChange={(e) => setStock(e.target.value)}
           />
-          <span className="text-xs text-stone-400">{p.unit}</span>
+          <span className="text-xs text-stone-400">{unitLabel(p.unit)}</span>
         </div>
       </td>
       <td className="px-4 py-3">
@@ -148,7 +148,6 @@ export default function StockPage() {
             <label className="label">Unit</label>
             <select className="input" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}>
               <option value="kg">kg</option>
-              <option value="litre">litre</option>
               <option value="piece">piece</option>
             </select>
           </div>

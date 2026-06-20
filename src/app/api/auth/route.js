@@ -7,10 +7,13 @@ export async function POST(request) {
   if (password !== PASSWORD) {
     return NextResponse.json({ error: "Incorrect password. Please try again." }, { status: 401 });
   }
+  // mark the cookie Secure only when served over HTTPS (so local http still works)
+  const isHttps = request.headers.get("x-forwarded-proto") === "https";
   const res = NextResponse.json({ ok: true });
   res.cookies.set("admin_auth", PASSWORD, {
     httpOnly: true,
     sameSite: "lax",
+    secure: isHttps,
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });

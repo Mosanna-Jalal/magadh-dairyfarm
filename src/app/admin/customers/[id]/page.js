@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { inr, prettyDate } from "@/lib/format";
+import { inr, prettyDate, unitLabel } from "@/lib/format";
+import { toast } from "@/lib/toast";
 import { EntryModal, PayModal } from "@/components/admin/Modals";
 
 export default function CustomerDetail() {
@@ -29,6 +30,7 @@ export default function CustomerDetail() {
       phone: d.customer?.phone || "",
       address: d.customer?.address || "",
       shift: d.customer?.shift || "both",
+      house: d.customer?.house || false,
       openingBalance: d.customer?.openingBalance ?? 0,
     });
   }, [id]);
@@ -39,11 +41,16 @@ export default function CustomerDetail() {
 
   async function saveEdit(e) {
     e.preventDefault();
-    await fetch(`/api/customers/${id}`, {
+    const res = await fetch(`/api/customers/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...editForm, openingBalance: Number(editForm.openingBalance || 0) }),
     });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      toast(json.error || "Could not save changes", "error");
+      return;
+    }
     setEditing(false);
     load();
   }
@@ -131,6 +138,15 @@ export default function CustomerDetail() {
                 <option value="both">Both</option>
               </select>
             </div>
+            <label className="inline-flex items-center gap-2 text-sm text-stone-600 sm:col-span-4">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-violet-600"
+                checked={editForm.house}
+                onChange={(e) => setEditForm({ ...editForm, house: e.target.checked })}
+              />
+              🏠 Owner&apos;s home account (leftover milk — excluded from sales)
+            </label>
             <div className="sm:col-span-4">
               <button className="btn-primary">✓ Save</button>
             </div>
@@ -167,7 +183,7 @@ export default function CustomerDetail() {
                     {prettyDate(p.date)} <span title={p.shift === "night" ? "Night" : "Morning"}>{p.shift === "night" ? "🌙" : "☀️"}</span>
                   </p>
                   <p className="text-sm text-stone-700">
-                    {p.items.map((i) => `${i.name} ${i.qty}${i.unit === "litre" ? "L" : "kg"} (${inr(i.amount)})`).join(" + ")}
+                    {p.items.map((i) => `${i.name} ${i.qty}${unitLabel(i.unit)} (${inr(i.amount)})`).join(" + ")}
                   </p>
                   {p.note && <p className="text-[11px] italic text-stone-400">“{p.note}”</p>}
                 </div>

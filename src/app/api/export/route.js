@@ -5,7 +5,7 @@ import Product from "@/models/Product";
 import Purchase from "@/models/Purchase";
 import Payment from "@/models/Payment";
 import { totalsByCustomer, dueOf } from "@/lib/ledger";
-import { listDays, prettyDay, dayStr } from "@/lib/format";
+import { listDays, prettyDay, dayStr, unitLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -77,7 +77,7 @@ export async function GET(request) {
         const cell = cellOf(String(p.customerId), p.date);
         cell.total += p.total;
         for (const it of p.items || [])
-          cell.items.push(`${it.name} ${it.qty}${it.unit === "litre" ? "L" : "kg"}`);
+          cell.items.push(`${it.name} ${it.qty}${unitLabel(it.unit)}`);
       }
       for (const pay of payments) cellOf(String(pay.customerId), pay.date).paid += pay.amount;
 
@@ -146,7 +146,7 @@ export async function GET(request) {
             phone: c?.phone || "",
             product: it.name,
             qty: it.qty,
-            unit: it.unit,
+            unit: unitLabel(it.unit),
             rate: it.rate,
             amount: it.amount,
             billTotal: p.total,

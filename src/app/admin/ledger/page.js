@@ -13,9 +13,12 @@ import {
   monthEnd,
   monthLabel,
   addMonths,
+  unitLabel,
+  round3,
 } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 import { EntryModal, PayModal } from "@/components/admin/Modals";
+import { defaultShift, isHouseCustomer } from "@/lib/shift";
 
 function CellContent({ cell }) {
   if (!cell || (cell.purchases.length === 0 && cell.payments.length === 0)) {
@@ -33,7 +36,7 @@ function CellContent({ cell }) {
               <span key={idx} className="inline-flex items-center gap-0.5">
                 <ProductIcon slug={i.name.toLowerCase()} className="h-3 w-3" />
                 {i.qty}
-                {i.unit === "litre" ? "L" : "kg"}
+                {unitLabel(i.unit)}
               </span>
             ))}
           </div>
@@ -58,9 +61,10 @@ export default function LedgerPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [shift, setShift] = useState("morning"); // morning | night | all
+  const [shift, setShift] = useState(defaultShift()); // morning | night | all
   const [entry, setEntry] = useState(null); // { customerId?, date?, shift? }
   const [pay, setPay] = useState(null); // customer object
+  const [showItems, setShowItems] = useState(false); // expand item-wise totals
 
   // last 12 months for the quick "jump to month" dropdown (recent first)
   const months = useMemo(() => {
@@ -118,13 +122,117 @@ export default function LedgerPage() {
     );
   }, [data, q]);
 
+  // home (leftover-milk) accounts are pinned on top and excluded from the totals
+  const houseRows = useMemo(() => rows.filter((r) => isHouseCustomer(r.customer)), [rows]);
+  const normalRows = useMemo(() => rows.filter((r) => !isHouseCustomer(r.customer)), [rows]);
+
   const dayTotalsFiltered = useMemo(() => {
     if (!data) return {};
     const t = {};
     for (const d of data.days)
-      t[d] = rows.reduce((s, r) => s + r.cells[d].purchases.reduce((x, p) => x + p.total, 0), 0);
+      t[d] = normalRows.reduce((s, r) => s + r.cells[d].purchases.reduce((x, p) => x + p.total, 0), 0);
     return t;
-  }, [data, rows]);
+  }, [data, normalRows]);
+
+  // item-wise quantities sold (per day + period), shown when Daily total is expanded
+  const itemBreakdown = useMemo(() => {
+    const perDay = {};
+    const totalQty = {};
+    const totalAmt = {};
+    const unit = {};
+    if (data) {
+      for (const row of normalRows) {
+        for (const d of data.days) {
+          for (const pur of row.cells[d].purchases) {
+            for (const it of pur.items || []) {
+              perDay[it.name] = perDay[it.name] || {};
+              perDay[it.name][d] = (perDay[it.name][d] || 0) + (it.qty || 0);
+              totalQty[it.name] = (totalQty[it.name] || 0) + (it.qty || 0);
+              totalAmt[it.name] = (totalAmt[it.name] || 0) + (it.amount || 0);
+              unit[it.name] = it.unit;
+            }
+          }
+        }
+      }
+    }
+    const order = new Map(products.map((p, i) => [p.name, p.sortOrder ?? i]));
+    const names = Object.keys(totalQty).sort((a, b) => (order.get(a) ?? 99) - (order.get(b) ?? 99));
+    return { names, perDay, totalQty, totalAmt, unit };
+  }, [data, normalRows, products]);
+
+  function renderRow(row, { serial, house }) {
+    return (
+      <tr
+        key={row.customer._id}
+        className={house ? "bg-violet-50" : serial % 2 === 0 ? "bg-stone-50/60" : "bg-white"}
+      >
+        <td
+          className={`sticky left-0 z-[5] border-r px-3 py-2 ${
+            house ? "border-violet-200 bg-violet-50" : "border-stone-200 bg-inherit"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                house ? "bg-violet-200" : "bg-stone-100 text-stone-500"
+              }`}
+            >
+              {house ? "🏠" : serial}
+            </span>
+            <div className="min-w-0">
+              <Link
+                href={`/admin/customers/${row.customer._id}`}
+                className={`font-semibold hover:text-leaf ${house ? "text-violet-800" : "text-stone-800"}`}
+              >
+                {row.customer.name}
+              </Link>
+              <p className="text-[10px] text-stone-400">
+                {house
+                  ? "Home account · leftover milk (excluded from sales)"
+                  : [row.customer.phone, row.customer.address].filter(Boolean).join(" · ") || "—"}
+              </p>
+            </div>
+          </div>
+        </td>
+        {data.days.map((d) => (
+          <td
+            key={d}
+            onClick={() =>
+              setEntry({
+                customerId: row.customer._id,
+                date: d,
+                shift: shift === "all" ? defaultShift() : shift,
+              })
+            }
+            className={`group cursor-pointer border-r border-stone-100 px-1.5 py-1.5 text-center align-top transition hover:bg-leaf/10 ${
+              d === today ? "bg-green-50/70" : ""
+            }`}
+            title={`Add entry for ${row.customer.name} — ${prettyDay(d)}`}
+          >
+            <CellContent cell={row.cells[d]} />
+            <span className="hidden text-xs font-bold text-leaf group-hover:inline">＋</span>
+          </td>
+        ))}
+        <td className="px-2 py-2 text-right font-semibold text-stone-700">
+          {row.rangeTotal ? inr(row.rangeTotal) : "—"}
+        </td>
+        <td className="px-3 py-2 text-right">
+          <span className={`text-sm font-extrabold ${row.due > 0 ? "text-red-600" : "text-green-700"}`}>
+            {inr(row.due)}
+          </span>
+        </td>
+        <td className="px-2 py-2 text-center">
+          <button
+            onClick={() => setPay({ ...row.customer, due: row.due })}
+            className="rounded-lg bg-green-100 px-2 py-1 text-xs font-bold text-green-800 hover:bg-green-200"
+            title="Record payment"
+          >
+            ₹＋
+          </button>
+        </td>
+      </tr>
+    );
+  }
 
   return (
     <div>
@@ -259,67 +367,23 @@ export default function LedgerPage() {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row, ri) => (
-                    <tr key={row.customer._id} className={ri % 2 ? "bg-stone-50/60" : "bg-white"}>
-                      <td className="sticky left-0 z-[5] border-r border-stone-200 bg-inherit px-3 py-2">
-                        <Link
-                          href={`/admin/customers/${row.customer._id}`}
-                          className="font-semibold text-stone-800 hover:text-leaf"
-                        >
-                          {row.customer.name}
-                        </Link>
-                        <p className="text-[10px] text-stone-400">
-                          {[row.customer.phone, row.customer.address].filter(Boolean).join(" · ") || "—"}
-                        </p>
-                      </td>
-                      {data.days.map((d) => (
-                        <td
-                          key={d}
-                          onClick={() =>
-                            setEntry({
-                              customerId: row.customer._id,
-                              date: d,
-                              shift: shift === "all" ? "morning" : shift,
-                            })
-                          }
-                          className={`group cursor-pointer border-r border-stone-100 px-1.5 py-1.5 text-center align-top transition hover:bg-leaf/10 ${
-                            d === today ? "bg-green-50/70" : ""
-                          }`}
-                          title={`Add entry for ${row.customer.name} — ${prettyDay(d)}`}
-                        >
-                          <CellContent cell={row.cells[d]} />
-                          <span className="hidden text-xs font-bold text-leaf group-hover:inline">＋</span>
-                        </td>
-                      ))}
-                      <td className="px-2 py-2 text-right font-semibold text-stone-700">
-                        {row.rangeTotal ? inr(row.rangeTotal) : "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <span
-                          className={`text-sm font-extrabold ${
-                            row.due > 0 ? "text-red-600" : "text-green-700"
-                          }`}
-                        >
-                          {inr(row.due)}
-                        </span>
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <button
-                          onClick={() => setPay({ ...row.customer, due: row.due })}
-                          className="rounded-lg bg-green-100 px-2 py-1 text-xs font-bold text-green-800 hover:bg-green-200"
-                          title="Record payment"
-                        >
-                          ₹＋
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  <>
+                    {houseRows.map((row) => renderRow(row, { house: true }))}
+                    {normalRows.map((row, ri) => renderRow(row, { serial: ri + 1 }))}
+                  </>
                 )}
               </tbody>
               <tfoot className="sticky bottom-0">
                 <tr className="bg-butter font-semibold text-stone-800">
                   <td className="sticky left-0 bg-butter px-3 py-2 text-xs uppercase tracking-wide">
-                    Daily total
+                    <button
+                      onClick={() => setShowItems((v) => !v)}
+                      className="flex items-center gap-1 hover:text-leaf"
+                      title="Show item-wise quantities sold"
+                    >
+                      <span className={`transition-transform ${showItems ? "rotate-180" : ""}`}>▾</span>
+                      Daily total
+                    </button>
                   </td>
                   {data.days.map((d) => (
                     <td key={d} className="px-2 py-2 text-center text-xs">
@@ -327,13 +391,42 @@ export default function LedgerPage() {
                     </td>
                   ))}
                   <td className="px-2 py-2 text-right text-xs">
-                    {inr(rows.reduce((s, r) => s + r.rangeTotal, 0))}
+                    {inr(normalRows.reduce((s, r) => s + r.rangeTotal, 0))}
                   </td>
                   <td className="px-3 py-2 text-right text-xs text-red-700">
-                    {inr(rows.reduce((s, r) => s + Math.max(0, r.due), 0))}
+                    {inr(normalRows.reduce((s, r) => s + Math.max(0, r.due), 0))}
                   </td>
                   <td />
                 </tr>
+
+                {/* item-wise breakdown (quantity sold per day + period) */}
+                {showItems &&
+                  itemBreakdown.names.map((name) => (
+                    <tr key={name} className="bg-amber-50/80 text-stone-600">
+                      <td className="sticky left-0 bg-amber-50 px-3 py-1.5 text-xs">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <ProductIcon slug={name.toLowerCase()} className="h-4 w-4" />
+                          {name}
+                        </span>
+                      </td>
+                      {data.days.map((d) => {
+                        const qd = itemBreakdown.perDay[name]?.[d];
+                        return (
+                          <td key={d} className="px-2 py-1.5 text-center text-[11px]">
+                            {qd ? `${round3(qd)}${unitLabel(itemBreakdown.unit[name])}` : "·"}
+                          </td>
+                        );
+                      })}
+                      <td className="px-2 py-1.5 text-right text-[11px] font-bold">
+                        {round3(itemBreakdown.totalQty[name])} {unitLabel(itemBreakdown.unit[name])}
+                        <span className="block font-normal text-stone-400">
+                          {inr(itemBreakdown.totalAmt[name])}
+                        </span>
+                      </td>
+                      <td />
+                      <td />
+                    </tr>
+                  ))}
               </tfoot>
             </table>
           </div>

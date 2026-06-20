@@ -58,7 +58,7 @@ export async function POST(request) {
     items.push({
       productId: product._id,
       name: product.name,
-      unit: product.unit,
+      unit: product.unit === "litre" ? "kg" : product.unit, // record in kg going forward
       qty,
       rate,
       amount: Math.round(qty * rate * 100) / 100,

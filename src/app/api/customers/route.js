@@ -21,11 +21,23 @@ export async function POST(request) {
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "Customer name is required" }, { status: 400 });
   }
+  const phone = (body.phone || "").trim();
+  // mobile number must be unique (empty allowed for customers without a phone)
+  if (phone) {
+    const dup = await Customer.findOne({ phone }).lean();
+    if (dup) {
+      return NextResponse.json(
+        { error: `A customer with mobile ${phone} already exists (${dup.name}).` },
+        { status: 409 }
+      );
+    }
+  }
   const customer = await Customer.create({
     name: body.name.trim(),
-    phone: (body.phone || "").trim(),
+    phone,
     address: (body.address || "").trim(),
     shift: ["morning", "night", "both"].includes(body.shift) ? body.shift : "both",
+    house: Boolean(body.house),
     openingBalance: Number(body.openingBalance || 0),
     note: body.note || "",
   });

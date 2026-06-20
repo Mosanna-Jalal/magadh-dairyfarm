@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { inr } from "@/lib/format";
+import { isHouseCustomer } from "@/lib/shift";
 
-const EMPTY = { name: "", phone: "", address: "", shift: "morning", openingBalance: "" };
+const EMPTY = { name: "", phone: "", address: "", shift: "morning", house: false, openingBalance: "" };
 
 const SHIFT_LABEL = { morning: "☀️ Morning", night: "🌙 Night", both: "☀️🌙 Both" };
 
@@ -114,6 +115,15 @@ export default function CustomersPage() {
             />
           </div>
         </div>
+        <label className="mt-3 inline-flex items-center gap-2 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-violet-600"
+            checked={form.house}
+            onChange={(e) => setForm({ ...form, house: e.target.checked })}
+          />
+          🏠 Owner&apos;s home account (leftover milk — excluded from sales reports)
+        </label>
         {error && <p className="mt-2 text-sm font-semibold text-red-600">{error}</p>}
         <button className="btn-primary mt-4" disabled={saving || !form.name.trim()}>
           {saving ? "Adding…" : "✓ Add customer"}
@@ -140,6 +150,7 @@ export default function CustomersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
+                  <th className="px-4 py-2.5 w-10">#</th>
                   <th className="px-4 py-2.5">Name</th>
                   <th className="px-4 py-2.5">Mobile</th>
                   <th className="px-4 py-2.5">Address</th>
@@ -152,9 +163,15 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {filtered.map((c) => (
-                  <tr key={c._id} className="hover:bg-green-50/40">
-                    <td className="px-4 py-3 font-semibold text-stone-800">{c.name}</td>
+                {filtered.map((c, i) => (
+                  <tr key={c._id} className={`hover:bg-green-50/40 ${isHouseCustomer(c) ? "bg-violet-50/50" : ""}`}>
+                    <td className="px-4 py-3 text-stone-400">{i + 1}</td>
+                    <td className="px-4 py-3 font-semibold text-stone-800">
+                      {c.name}
+                      {isHouseCustomer(c) && (
+                        <span className="ml-2 chip bg-violet-100 text-violet-700">🏠 Home</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-stone-500">{c.phone || "—"}</td>
                     <td className="px-4 py-3 text-stone-500">{c.address || "—"}</td>
                     <td className="px-4 py-3 text-stone-600">{SHIFT_LABEL[c.shift] || SHIFT_LABEL.both}</td>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { inr, prettyDate, dayStr } from "@/lib/format";
+import { inr, prettyDate, dayStr, round3, unitLabel } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Bill from "@/components/Bill";
@@ -184,7 +184,7 @@ export default function PortalPage() {
                     <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}:{" "}
                     {p.stock <= 0
                       ? "sold out"
-                      : `${p.stock} ${p.unit} • ${inr(p.price)}/${p.unit}`}
+                      : `${round3(p.stock)} ${unitLabel(p.unit)} • ${inr(p.price)}/${unitLabel(p.unit)}`}
                   </span>
                 ))}
               </div>
@@ -237,12 +237,7 @@ export default function PortalPage() {
       </div>
 
       {bill && (
-        <Bill
-          customer={data.customer}
-          bill={bill.bill}
-          currentDue={bill.currentDue}
-          onClose={() => setBill(null)}
-        />
+        <Bill customer={data.customer} bill={bill.bill} onClose={() => setBill(null)} />
       )}
 
       <WhatsAppButton label="Contact the farm" />

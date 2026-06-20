@@ -23,7 +23,7 @@ const Payment = mongoose.model("Payment", new mongoose.Schema({}, { strict: fals
 
 // Default catalogue — milk first, then paneer, ghee, khowa, dahi. Stock starts at 0.
 const PRODUCTS = [
-  { name: "Milk", nameHindi: "दूध", slug: "milk", unit: "litre", price: 60, stock: 0, lowStockAt: 15, sortOrder: 1, emoji: "🥛", description: "Fresh whole milk from our cows and buffaloes, morning and evening — no water, no powder." },
+  { name: "Milk", nameHindi: "दूध", slug: "milk", unit: "kg", price: 60, stock: 0, lowStockAt: 15, sortOrder: 1, emoji: "🥛", description: "Fresh whole milk from our cows and buffaloes, morning and evening — no water, no powder." },
   { name: "Paneer", nameHindi: "पनीर", slug: "paneer", unit: "kg", price: 350, stock: 0, lowStockAt: 2, sortOrder: 2, emoji: "🧀", description: "Soft paneer made fresh at the farm — for everyday cooking and special occasions." },
   { name: "Ghee", nameHindi: "घी", slug: "ghee", unit: "kg", price: 750, stock: 0, lowStockAt: 1, sortOrder: 3, emoji: "🧈", description: "Traditional bilona ghee, slow-made from pure cream with a rich aroma." },
   { name: "Khowa", nameHindi: "खोवा", slug: "khowa", unit: "kg", price: 420, stock: 0, lowStockAt: 1, sortOrder: 4, emoji: "🥮", description: "Sweet-shop quality khowa for laddu, peda and gujhiya." },

@@ -20,9 +20,14 @@ export async function GET(request) {
 
   const custFilter = { active: true };
   const purFilter = { date: { $gte: from, $lte: to } };
-  if (shift === "morning" || shift === "night") {
-    purFilter.shift = shift;
-    custFilter.shift = { $in: [shift, "both"] };
+  // Untagged legacy data (no shift field) is treated as morning / shown in both,
+  // so existing records stay visible after the shift feature ships.
+  if (shift === "morning") {
+    purFilter.shift = { $ne: "night" };
+    custFilter.shift = { $in: ["morning", "both", null] };
+  } else if (shift === "night") {
+    purFilter.shift = "night";
+    custFilter.shift = { $in: ["night", "both", null] };
   }
 
   const [customers, purchases, payments, totals] = await Promise.all([

@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { inr, dayStr } from "@/lib/format";
+import { inr, dayStr, round3, unitLabel } from "@/lib/format";
+import { defaultShift } from "@/lib/shift";
+import { toast } from "@/lib/toast";
 import ProductIcon from "@/components/ProductIcon";
 import CustomerSelect from "@/components/admin/CustomerSelect";
 
@@ -34,7 +36,7 @@ function ModalShell({ title, subtitle, onClose, children }) {
 export function EntryModal({ customers, products, preset = {}, onClose, onSaved }) {
   const [customerId, setCustomerId] = useState(preset.customerId || customers[0]?._id || "");
   const [date, setDate] = useState(preset.date || dayStr());
-  const [shift, setShift] = useState(preset.shift === "night" ? "night" : "morning");
+  const [shift, setShift] = useState(preset.shift || defaultShift());
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -55,6 +57,21 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
     setLines((ls) => ls.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   }
 
+  // update a quantity and warn (red toast) the moment it exceeds available stock
+  function onQty(i, p, value) {
+    const prev = Number(lines[i].qty) || 0;
+    const next = Number(value) || 0;
+    setLine(i, { qty: value });
+    if (next > p.stock && prev <= p.stock) {
+      toast(
+        p.stock <= 0
+          ? `${p.name} is out of stock — please update the stock first.`
+          : `Only ${round3(p.stock)} ${unitLabel(p.unit)} of ${p.name} in stock — update the stock first.`,
+        "error"
+      );
+    }
+  }
+
   async function save() {
     setError("");
     const items = lines.filter((l) => Number(l.qty) > 0);
@@ -73,6 +90,7 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
       onClose();
     } catch (err) {
       setError(err.message);
+      toast(err.message, "error");
       setSaving(false);
     }
   }
@@ -148,13 +166,13 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
                   <p className="text-sm font-bold text-stone-800">
                     {p.name}{" "}
                     <span className="text-[11px] font-medium text-stone-400">
-                      {inr(p.price)}/{p.unit}
+                      {inr(p.price)}/{unitLabel(p.unit)}
                     </span>
                   </p>
                   <p className={`text-[11px] font-medium ${
                     p.stock <= 0 ? "text-red-600" : p.stock <= p.lowStockAt ? "text-amber-600" : "text-green-700"
                   }`}>
-                    {p.stock <= 0 ? "Out of stock ❌" : `${p.stock} ${p.unit} available`}
+                    {p.stock <= 0 ? "Out of stock ❌" : `${round3(p.stock)} ${unitLabel(p.unit)} available`}
                   </p>
                 </div>
                 <div className="w-20">
@@ -163,10 +181,9 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
                     min="0"
                     step="0.25"
                     placeholder="Qty"
-                    disabled={p.stock <= 0}
                     className={`input text-center ${over ? "!border-red-400 !ring-red-200" : ""}`}
                     value={line.qty}
-                    onChange={(e) => setLine(i, { qty: e.target.value })}
+                    onChange={(e) => onQty(i, p, e.target.value)}
                   />
                 </div>
                 <div className="w-20">
@@ -185,7 +202,7 @@ export function EntryModal({ customers, products, preset = {}, onClose, onSaved 
               </div>
               {over && (
                 <p className="mt-1 text-[11px] font-semibold text-red-600">
-                  Only {p.stock} {p.unit} left!
+                  Only {round3(p.stock)} {unitLabel(p.unit)} left!
                 </p>
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { inr, prettyDate } from "@/lib/format";
+import { inr, prettyDate, round3, unitLabel } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 
 export default function AdminDashboard() {
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
             ))}
             {s.lowStock.map((p) => (
               <span key={p.slug} className="chip bg-amber-200 text-amber-900">
-                <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}: only {p.stock} {p.unit} left
+                <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}: only {round3(p.stock)} {unitLabel(p.unit)} left
               </span>
             ))}
           </div>
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
                       <ProductIcon slug={p.slug} className="h-4 w-4" /> {p.name}
                     </p>
                     <p className={`font-bold ${p.stock <= 0 ? "text-red-600" : p.stock <= p.lowStockAt ? "text-amber-600" : "text-stone-700"}`}>
-                      {p.stock <= 0 ? "Out" : `${p.stock} ${p.unit}`}
+                      {p.stock <= 0 ? "Out" : `${round3(p.stock)} ${unitLabel(p.unit)}`}
                     </p>
                   </div>
                   <div className="mt-1 h-2 overflow-hidden rounded-full bg-stone-100">

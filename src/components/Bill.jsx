@@ -1,12 +1,12 @@
 "use client";
 
-import { inr, prettyDate } from "@/lib/format";
+import { inr, prettyDate, unitLabel } from "@/lib/format";
 
 const OWNER_WHATSAPP = "9973807755";
 
 // A printable, PDF-ready invoice for a date range. "Save as PDF" uses the
 // browser's print dialog (print CSS isolates #printable-bill).
-export default function Bill({ customer, bill, currentDue, onClose }) {
+export default function Bill({ customer, bill, onClose }) {
   const net = (bill.purchased || 0) - (bill.paid || 0);
   const billNo = `${(customer.phone || "0000").slice(-4)}-${bill.from.replace(/-/g, "").slice(2)}`;
 
@@ -84,9 +84,7 @@ export default function Bill({ customer, bill, currentDue, onClose }) {
                     <span className="text-[10px]">{p.shift === "night" ? "🌙" : "☀️"}</span>
                   </td>
                   <td className="px-3 py-2 text-stone-700">
-                    {p.items
-                      .map((i) => `${i.name} ${i.qty}${i.unit === "litre" ? "L" : "kg"}`)
-                      .join(", ")}
+                    {p.items.map((i) => `${i.name} ${i.qty}${unitLabel(i.unit)}`).join(", ")}
                   </td>
                   <td className="px-3 py-2 text-right font-semibold text-stone-800">{inr(p.total)}</td>
                 </tr>
@@ -114,24 +112,24 @@ export default function Bill({ customer, bill, currentDue, onClose }) {
           </div>
         )}
 
-        {/* totals */}
+        {/* totals — for the selected period only */}
         <div className="mt-6 flex justify-end">
           <div className="w-full max-w-xs space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-stone-500">Purchases (period)</span>
+              <span className="text-stone-500">Purchases (this period)</span>
               <span className="font-semibold text-stone-800">{inr(bill.purchased)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Paid (period)</span>
+            <div className="flex justify-between border-b border-stone-200 pb-1.5">
+              <span className="text-stone-500">Paid (this period)</span>
               <span className="font-semibold text-green-700">− {inr(bill.paid)}</span>
             </div>
-            <div className="flex justify-between border-t border-stone-200 pt-1.5">
-              <span className="font-bold text-stone-700">Net for period</span>
-              <span className="font-bold text-stone-900">{inr(net)}</span>
-            </div>
-            <div className="mt-1 flex justify-between rounded-lg bg-amber-50 px-3 py-2">
-              <span className="font-bold text-amber-800">Total outstanding (all-time)</span>
-              <span className="font-extrabold text-red-600">{inr(currentDue)}</span>
+            <div className="mt-1 flex justify-between rounded-lg bg-amber-50 px-3 py-2.5">
+              <span className="font-bold text-amber-800">
+                {net > 0 ? "Amount due (this period)" : "Balance (this period)"}
+              </span>
+              <span className={`font-extrabold ${net > 0 ? "text-red-600" : "text-green-700"}`}>
+                {inr(net)}
+              </span>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { inr } from "@/lib/format";
+import { inr, round3, unitLabel } from "@/lib/format";
 import { colorFor } from "@/lib/colors";
 import ProductIcon from "@/components/ProductIcon";
 
@@ -20,7 +20,7 @@ export default function TopProductsChart({ products }) {
               {i === 0 && <span title="Top seller">🏆</span>}
               {p.name}
               <span className="text-xs text-stone-400">
-                · {p.qty} {p.unit} sold
+                · {round3(p.qty)} {unitLabel(p.unit)} sold
               </span>
             </span>
             <span className="font-bold text-stone-800">{inr(p.sales)}</span>

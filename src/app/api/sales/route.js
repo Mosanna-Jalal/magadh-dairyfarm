@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
+import Customer from "@/models/Customer";
 import Purchase from "@/models/Purchase";
 import Payment from "@/models/Payment";
-import { listDays, listMonths } from "@/lib/format";
+import { listDays, listMonths, unitLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,18 @@ export async function GET(request) {
   if (!from || !to) return NextResponse.json({ error: "from and to required" }, { status: 400 });
 
   const purFilter = { date: { $gte: from, $lte: to } };
-  if (shift === "morning" || shift === "night") purFilter.shift = shift;
+  // untagged legacy purchases count as morning
+  if (shift === "morning") purFilter.shift = { $ne: "night" };
+  else if (shift === "night") purFilter.shift = "night";
+
+  // exclude owner's home accounts (leftover milk) from all sales figures
+  const houseCustomers = await Customer.find({
+    $or: [{ house: true }, { name: { $regex: "home\\s*(morning|night)", $options: "i" } }],
+  })
+    .select("_id")
+    .lean();
+  const houseIds = houseCustomers.map((c) => c._id);
+  if (houseIds.length) purFilter.customerId = { $nin: houseIds };
 
   const [purchases, payments] = await Promise.all([
     Purchase.find(purFilter).select("date total items shift").lean(),
@@ -47,7 +59,7 @@ export async function GET(request) {
       const cur = prodMap.get(it.name) || {
         name: it.name,
         slug: (it.name || "").toLowerCase(),
-        unit: it.unit,
+        unit: unitLabel(it.unit),
         sales: 0,
         qty: 0,
       };
@@ -56,7 +68,14 @@ export async function GET(request) {
       prodMap.set(it.name, cur);
     }
   }
-  const products = [...prodMap.values()].sort((a, b) => b.sales - a.sales);
+  // round away floating-point drift: qty to 3 dp, sales to 2 dp
+  const products = [...prodMap.values()]
+    .map((p) => ({
+      ...p,
+      qty: Math.round(p.qty * 1000) / 1000,
+      sales: Math.round(p.sales * 100) / 100,
+    }))
+    .sort((a, b) => b.sales - a.sales);
 
   // ── product-wise monthly trend ──
   const months = listMonths(from, to);
