@@ -61,7 +61,7 @@ export default function LedgerPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [shift, setShift] = useState(defaultShift()); // morning | night | all
+  const [shift, setShift] = useState(null); // set on mount from the device's local time
   const [entry, setEntry] = useState(null); // { customerId?, date?, shift? }
   const [pay, setPay] = useState(null); // customer object
   const [showItems, setShowItems] = useState(false); // expand item-wise totals
@@ -74,6 +74,7 @@ export default function LedgerPage() {
   }, [today]);
 
   const load = useCallback(async () => {
+    if (!shift) return; // wait until the device-local shift is resolved
     setLoading(true);
     const shiftQ = shift === "all" ? "" : `&shift=${shift}`;
     const [ledRes, custRes, prodRes] = await Promise.all([
@@ -87,6 +88,12 @@ export default function LedgerPage() {
     setProducts(prod.products || []);
     setLoading(false);
   }, [from, to, shift]);
+
+  // resolve morning/night from the device clock on mount (a full refresh
+  // server-renders first, where the server's timezone would be wrong)
+  useEffect(() => {
+    setShift(defaultShift());
+  }, []);
 
   useEffect(() => {
     load();
