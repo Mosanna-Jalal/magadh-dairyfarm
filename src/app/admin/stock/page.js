@@ -1,25 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { inr, round3, unitLabel } from "@/lib/format";
+import { round3, unitLabel } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 
 function ProductRow({ p, onSaved }) {
+  const [name, setName] = useState(p.name);
   const [stock, setStock] = useState(round3(p.stock));
   const [price, setPrice] = useState(p.price);
   const [lowStockAt, setLowStockAt] = useState(p.lowStockAt);
+  const [showOnSite, setShowOnSite] = useState(p.showOnSite !== false);
   const [saving, setSaving] = useState(false);
-  const dirty = Number(stock) !== p.stock || Number(price) !== p.price || Number(lowStockAt) !== p.lowStockAt;
+  const dirty =
+    name !== p.name ||
+    Number(stock) !== p.stock ||
+    Number(price) !== p.price ||
+    Number(lowStockAt) !== p.lowStockAt ||
+    showOnSite !== (p.showOnSite !== false);
 
   async function save() {
+    if (!name.trim()) return;
     setSaving(true);
     await fetch(`/api/products/${p._id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        name: name.trim(),
         stock: round3(stock),
         price: Number(price),
         lowStockAt: Number(lowStockAt),
+        showOnSite,
       }),
     });
     setSaving(false);
@@ -27,13 +37,22 @@ function ProductRow({ p, onSaved }) {
   }
 
   return (
-    <tr className="hover:bg-green-50/40">
+    <tr className={`hover:bg-green-50/40 ${showOnSite ? "" : "bg-stone-50/60"}`}>
       <td className="px-4 py-3">
-        <p className="flex items-center gap-2 font-semibold text-stone-800">
+        <div className="flex items-center gap-2">
           <ProductIcon slug={p.slug} className="h-6 w-6 shrink-0" />
-          {p.name} <span className="text-xs font-normal text-stone-400">{p.nameHindi}</span>
-        </p>
-        <p className="text-[11px] text-stone-400">per {unitLabel(p.unit)}</p>
+          <div className="min-w-0">
+            <input
+              className="input w-36 !py-1.5 font-semibold"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Product name"
+            />
+            <p className="mt-0.5 text-[11px] text-stone-400">
+              {p.nameHindi ? `${p.nameHindi} · ` : ""}per {unitLabel(p.unit)}
+            </p>
+          </div>
+        </div>
       </td>
       <td className="px-4 py-3">
         {p.stock <= 0 ? (
@@ -79,6 +98,17 @@ function ProductRow({ p, onSaved }) {
           title="Low-stock alert threshold"
         />
       </td>
+      <td className="px-4 py-3">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-stone-600">
+          <input
+            type="checkbox"
+            className="h-4 w-4 accent-leaf"
+            checked={showOnSite}
+            onChange={(e) => setShowOnSite(e.target.checked)}
+          />
+          {showOnSite ? "Shown" : "Hidden"}
+        </label>
+      </td>
       <td className="px-4 py-3 text-right">
         <button className="btn-primary !px-4 !py-1.5 text-xs" onClick={save} disabled={!dirty || saving}>
           {saving ? "…" : "✓ Save"}
@@ -91,7 +121,7 @@ function ProductRow({ p, onSaved }) {
 export default function StockPage() {
   const [products, setProducts] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", nameHindi: "", unit: "kg", price: "", stock: "", emoji: "🧈", sortOrder: 10 });
+  const [form, setForm] = useState({ name: "", nameHindi: "", unit: "kg", price: "", stock: "", emoji: "🧈", sortOrder: 10, showOnSite: true });
 
   async function load() {
     const res = await fetch("/api/products");
@@ -115,7 +145,7 @@ export default function StockPage() {
       }),
     });
     setShowAdd(false);
-    setForm({ name: "", nameHindi: "", unit: "kg", price: "", stock: "", emoji: "🧈", sortOrder: 10 });
+    setForm({ name: "", nameHindi: "", unit: "kg", price: "", stock: "", emoji: "🧈", sortOrder: 10, showOnSite: true });
     load();
   }
 
@@ -159,6 +189,15 @@ export default function StockPage() {
             <label className="label">Stock</label>
             <input type="number" className="input" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
           </div>
+          <label className="flex items-center gap-2 text-sm text-stone-600 sm:col-span-3 lg:col-span-5">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-leaf"
+              checked={form.showOnSite}
+              onChange={(e) => setForm({ ...form, showOnSite: e.target.checked })}
+            />
+            Show this product on the website homepage
+          </label>
           <div className="flex items-end">
             <button className="btn-primary w-full justify-center" disabled={!form.name || !form.price}>
               ✓ Add
@@ -181,6 +220,7 @@ export default function StockPage() {
                 <th className="px-4 py-2.5">Available today</th>
                 <th className="px-4 py-2.5">Rate</th>
                 <th className="px-4 py-2.5">Alert level</th>
+                <th className="px-4 py-2.5">Website</th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
@@ -195,7 +235,8 @@ export default function StockPage() {
 
       <p className="mt-3 text-xs text-stone-400">
         💡 The stock you save is the total currently available (to restock, enter the new figure).
-        Recording a sale reduces it automatically; deleting an entry adds it back.
+        Recording a sale reduces it automatically; deleting an entry adds it back. Untick
+        &ldquo;Website&rdquo; to track a product privately without showing it on the homepage.
       </p>
     </div>
   );

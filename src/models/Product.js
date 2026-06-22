@@ -12,6 +12,8 @@ const ProductSchema = new mongoose.Schema(
     sortOrder: { type: Number, default: 99 }, // milk first, then paneer, ghee, khowa, dahi
     emoji: { type: String, default: "🥛" },
     description: { type: String, default: "" },
+    // show on the public website homepage (owner can track items privately)
+    showOnSite: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

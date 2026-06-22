@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 async function getProducts() {
   try {
     await dbConnect();
-    return await Product.find().sort({ sortOrder: 1 }).lean();
+    return await Product.find({ showOnSite: { $ne: false } }).sort({ sortOrder: 1 }).lean();
   } catch {
     return null; // DB unreachable — page still renders
   }

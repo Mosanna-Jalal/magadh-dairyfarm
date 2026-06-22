@@ -7,7 +7,7 @@ export async function PATCH(request, { params }) {
   const { id } = await params;
   const body = await request.json();
   const allowed = {};
-  for (const k of ["stock", "price", "lowStockAt", "name", "nameHindi", "description", "unit"]) {
+  for (const k of ["stock", "price", "lowStockAt", "name", "nameHindi", "description", "unit", "showOnSite"]) {
     if (body[k] !== undefined) allowed[k] = body[k];
   }
   // keep stock to at most 3 decimal places

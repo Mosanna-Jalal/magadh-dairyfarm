@@ -25,7 +25,7 @@ export async function GET(request) {
   const [purchases, payments, products] = await Promise.all([
     Purchase.find({ customerId: customer._id }).sort({ date: -1, createdAt: -1 }).limit(60).lean(),
     Payment.find({ customerId: customer._id }).sort({ date: -1, createdAt: -1 }).limit(30).lean(),
-    Product.find().sort({ sortOrder: 1 }).lean(),
+    Product.find({ showOnSite: { $ne: false } }).sort({ sortOrder: 1 }).lean(),
   ]);
   const [purAgg, payAgg] = await Promise.all([
     Purchase.aggregate([
