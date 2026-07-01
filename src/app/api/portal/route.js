@@ -46,17 +46,29 @@ export async function GET(request) {
   const to = searchParams.get("to");
   let bill = null;
   if (from && to) {
-    const [bp, bpay] = await Promise.all([
+    const [bp, bpay, beforePur, beforePay] = await Promise.all([
       Purchase.find({ customerId: customer._id, date: { $gte: from, $lte: to } })
         .sort({ date: 1, createdAt: 1 })
         .lean(),
       Payment.find({ customerId: customer._id, date: { $gte: from, $lte: to } })
         .sort({ date: 1, createdAt: 1 })
         .lean(),
+      Purchase.aggregate([
+        { $match: { customerId: customer._id, date: { $lt: from } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
+      ]),
+      Payment.aggregate([
+        { $match: { customerId: customer._id, date: { $lt: from } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
     ]);
+    // running balance carried into the period (opening + everything before `from`)
+    const previousBalance =
+      (customer.openingBalance || 0) + (beforePur[0]?.total || 0) - (beforePay[0]?.total || 0);
     bill = {
       from,
       to,
+      previousBalance,
       purchases: bp,
       payments: bpay,
       purchased: bp.reduce((s, p) => s + p.total, 0),

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { inr, prettyDate, unitLabel } from "@/lib/format";
+import { inr, prettyDate, unitLabel, dayStr, addMonths, monthEnd } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { EntryModal, PayModal } from "@/components/admin/Modals";
+import Bill from "@/components/Bill";
 
 export default function CustomerDetail() {
   const { id } = useParams();
@@ -15,6 +16,41 @@ export default function CustomerDetail() {
   const [pay, setPay] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
+
+  // bill generation (built from the already-loaded purchases/payments)
+  const today = dayStr();
+  const [billFrom, setBillFrom] = useState(today.slice(0, 7) + "-01");
+  const [billTo, setBillTo] = useState(today);
+  const [bill, setBill] = useState(null);
+
+  function setThisMonth() {
+    setBillFrom(today.slice(0, 7) + "-01");
+    setBillTo(today);
+  }
+  function setLastMonth() {
+    const ym = addMonths(today, -1).slice(0, 7);
+    setBillFrom(ym + "-01");
+    setBillTo(monthEnd(ym + "-01"));
+  }
+  function generateBill() {
+    const inRange = (d) => d >= billFrom && d <= billTo;
+    const byDate = (a, b) => (a.date < b.date ? -1 : 1);
+    const purchases = (data.purchases || []).filter((p) => inRange(p.date)).sort(byDate);
+    const payments = (data.payments || []).filter((p) => inRange(p.date)).sort(byDate);
+    // running balance carried into the period (opening + everything before `from`)
+    const prevPur = (data.purchases || []).filter((p) => p.date < billFrom).reduce((s, p) => s + p.total, 0);
+    const prevPay = (data.payments || []).filter((p) => p.date < billFrom).reduce((s, p) => s + p.amount, 0);
+    const previousBalance = (data.customer?.openingBalance || 0) + prevPur - prevPay;
+    setBill({
+      from: billFrom,
+      to: billTo,
+      previousBalance,
+      purchases,
+      payments,
+      purchased: purchases.reduce((s, p) => s + p.total, 0),
+      paid: payments.reduce((s, p) => s + p.amount, 0),
+    });
+  }
 
   const load = useCallback(async () => {
     const [dRes, pRes] = await Promise.all([
@@ -168,6 +204,37 @@ export default function CustomerDetail() {
         </div>
       </div>
 
+      {/* generate bill */}
+      <div className="card mt-5 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-bold text-stone-900">🧾 Generate Bill</h2>
+            <p className="text-sm text-stone-500">Pick a range and save this customer&apos;s bill as PDF.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-ghost" onClick={setThisMonth}>
+              This month
+            </button>
+            <button className="btn-ghost" onClick={setLastMonth}>
+              Last month
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="label">From</label>
+            <input type="date" className="input" value={billFrom} max={billTo} onChange={(e) => setBillFrom(e.target.value)} />
+          </div>
+          <div>
+            <label className="label">To</label>
+            <input type="date" className="input" value={billTo} min={billFrom} max={today} onChange={(e) => setBillTo(e.target.value)} />
+          </div>
+          <button className="btn-primary" onClick={generateBill}>
+            📄 Generate bill
+          </button>
+        </div>
+      </div>
+
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         {/* purchases */}
         <div className="card p-5">
@@ -243,6 +310,7 @@ export default function CustomerDetail() {
         />
       )}
       {pay && <PayModal customer={{ ...c, due: data.due }} onClose={() => setPay(false)} onSaved={load} />}
+      {bill && <Bill customer={c} bill={bill} onClose={() => setBill(null)} />}
     </div>
   );
 }

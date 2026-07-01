@@ -7,7 +7,9 @@ const OWNER_WHATSAPP = "9973807755";
 // A printable, PDF-ready invoice for a date range. "Save as PDF" uses the
 // browser's print dialog (print CSS isolates #printable-bill).
 export default function Bill({ customer, bill, onClose }) {
-  const net = (bill.purchased || 0) - (bill.paid || 0);
+  // Balance-forward statement: previous balance + period purchases − period payments.
+  const previousBalance = bill.previousBalance || 0;
+  const carried = previousBalance + (bill.purchased || 0) - (bill.paid || 0);
   const billNo = `${(customer.phone || "0000").slice(-4)}-${bill.from.replace(/-/g, "").slice(2)}`;
 
   return (
@@ -112,25 +114,41 @@ export default function Bill({ customer, bill, onClose }) {
           </div>
         )}
 
-        {/* totals — for the selected period only */}
+        {/* account statement — running (carry-forward) balance */}
         <div className="mt-6 flex justify-end">
-          <div className="w-full max-w-xs space-y-1.5 text-sm">
+          <div className="w-full max-w-sm space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-stone-500">Purchases (this period)</span>
+              <span className="text-stone-500">
+                Opening Balance{" "}
+                <span className="text-[10px] text-stone-400">(as on {prettyDate(bill.from)})</span>
+              </span>
+              <span className="font-semibold text-stone-800">{inr(previousBalance)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-stone-500">Add: Purchases</span>
               <span className="font-semibold text-stone-800">{inr(bill.purchased)}</span>
             </div>
             <div className="flex justify-between border-b border-stone-200 pb-1.5">
-              <span className="text-stone-500">Paid (this period)</span>
+              <span className="text-stone-500">Less: Payments Received</span>
               <span className="font-semibold text-green-700">− {inr(bill.paid)}</span>
             </div>
             <div className="mt-1 flex justify-between rounded-lg bg-amber-50 px-3 py-2.5">
               <span className="font-bold text-amber-800">
-                {net > 0 ? "Amount due (this period)" : "Balance (this period)"}
+                {carried > 0
+                  ? "Net Amount Payable"
+                  : carried < 0
+                  ? "Advance / Credit Balance"
+                  : "Closing Balance"}
               </span>
-              <span className={`font-extrabold ${net > 0 ? "text-red-600" : "text-green-700"}`}>
-                {inr(net)}
+              <span className={`font-extrabold ${carried > 0 ? "text-red-600" : "text-green-700"}`}>
+                {inr(Math.abs(carried))}
+                {carried < 0 ? " Cr." : ""}
               </span>
             </div>
+            <p className="pt-1 text-right text-[10px] text-stone-400">
+              Running account statement — closing balance is inclusive of all dues up to{" "}
+              {prettyDate(bill.to)}.
+            </p>
           </div>
         </div>
 

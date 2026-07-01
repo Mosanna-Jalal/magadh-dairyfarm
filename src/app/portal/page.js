@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { inr, prettyDate, dayStr, round3, unitLabel } from "@/lib/format";
+import { inr, prettyDate, dayStr, round3, unitLabel, addMonths, monthEnd } from "@/lib/format";
 import ProductIcon from "@/components/ProductIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import Bill from "@/components/Bill";
@@ -20,6 +20,16 @@ export default function PortalPage() {
   const [billTo, setBillTo] = useState(today);
   const [bill, setBill] = useState(null);
   const [genLoading, setGenLoading] = useState(false);
+
+  function setThisMonth() {
+    setBillFrom(today.slice(0, 7) + "-01");
+    setBillTo(today);
+  }
+  function setLastMonth() {
+    const ym = addMonths(today, -1).slice(0, 7);
+    setBillFrom(ym + "-01");
+    setBillTo(monthEnd(ym + "-01"));
+  }
 
   async function generateBill() {
     setGenLoading(true);
@@ -138,6 +148,14 @@ export default function PortalPage() {
               <p className="mt-1 text-sm text-stone-500">
                 Choose a date range and download a clean PDF bill of your purchases.
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button className="btn-ghost" onClick={setThisMonth}>
+                  This month
+                </button>
+                <button className="btn-ghost" onClick={setLastMonth}>
+                  Last month
+                </button>
+              </div>
               <div className="mt-3 flex flex-wrap items-end gap-3">
                 <div>
                   <label className="label">From</label>
